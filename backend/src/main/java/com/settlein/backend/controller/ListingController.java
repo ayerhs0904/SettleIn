@@ -15,6 +15,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import com.settlein.backend.dto.AiSearchRequest;
+import com.settlein.backend.dto.AiSearchResponse;
+import com.settlein.backend.service.AiSearchService;
+
 @RestController
 @RequestMapping("/api/listings")
 @RequiredArgsConstructor
@@ -22,6 +26,17 @@ import org.springframework.web.bind.annotation.*;
 public class ListingController {
 
     private final ListingService listingService;
+    private final AiSearchService aiSearchService;
+
+    @PostMapping("/ai-search")
+    public ResponseEntity<AiSearchResponse> searchWithAi(
+            @RequestBody AiSearchRequest request,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
+        return ResponseEntity.ok(aiSearchService.searchWithAi(request.getQuery(), pageable));
+    }
 
     @PostMapping
     public ResponseEntity<ListingResponse> createListing(

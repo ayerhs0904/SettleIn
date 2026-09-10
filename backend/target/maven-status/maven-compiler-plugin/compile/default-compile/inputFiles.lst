@@ -6,6 +6,9 @@ C:\anti projects\SettleIn\backend\src\main\java\com\settlein\backend\config\Secu
 C:\anti projects\SettleIn\backend\src\main\java\com\settlein\backend\controller\AuthController.java
 C:\anti projects\SettleIn\backend\src\main\java\com\settlein\backend\controller\HealthController.java
 C:\anti projects\SettleIn\backend\src\main\java\com\settlein\backend\controller\ListingController.java
+C:\anti projects\SettleIn\backend\src\main\java\com\settlein\backend\dto\AiParsedFilters.java
+C:\anti projects\SettleIn\backend\src\main\java\com\settlein\backend\dto\AiSearchRequest.java
+C:\anti projects\SettleIn\backend\src\main\java\com\settlein\backend\dto\AiSearchResponse.java
 C:\anti projects\SettleIn\backend\src\main\java\com\settlein\backend\dto\AuthRequest.java
 C:\anti projects\SettleIn\backend\src\main\java\com\settlein\backend\dto\AuthResponse.java
 C:\anti projects\SettleIn\backend\src\main\java\com\settlein\backend\dto\ListingRequest.java
@@ -18,5 +21,6 @@ C:\anti projects\SettleIn\backend\src\main\java\com\settlein\backend\entity\User
 C:\anti projects\SettleIn\backend\src\main\java\com\settlein\backend\repository\ListingRepository.java
 C:\anti projects\SettleIn\backend\src\main\java\com\settlein\backend\repository\ListingSpecification.java
 C:\anti projects\SettleIn\backend\src\main\java\com\settlein\backend\repository\UserRepository.java
+C:\anti projects\SettleIn\backend\src\main\java\com\settlein\backend\service\AiSearchService.java
 C:\anti projects\SettleIn\backend\src\main\java\com\settlein\backend\service\AuthService.java
 C:\anti projects\SettleIn\backend\src\main\java\com\settlein\backend\service\ListingService.java
