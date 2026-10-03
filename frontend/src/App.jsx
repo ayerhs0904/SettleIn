@@ -6,6 +6,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import ListingsBrowse from './pages/ListingsBrowse';
 import ListingDetail from './pages/ListingDetail';
+import PreferencesPage from './pages/PreferencesPage';
 import './index.css';
 
 function App() {
@@ -18,6 +19,7 @@ function App() {
           <Route element={<ProtectedRoute />}>
             <Route path="/" element={<ListingsBrowse />} />
             <Route path="/listings/:id" element={<ListingDetail />} />
+            <Route path="/preferences" element={<PreferencesPage />} />
           </Route>
         </Routes>
       </Router>

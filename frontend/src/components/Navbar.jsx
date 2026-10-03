@@ -36,6 +36,16 @@ const Navbar = ({ onOpenCreateModal }) => {
                         </div>
                     )}
 
+                    {user && (
+                        <Link
+                            to="/preferences"
+                            className="text-gray-300 hover:text-white px-3 py-2 text-sm font-medium transition-colors flex items-center space-x-1"
+                        >
+                            <span>⚙️</span>
+                            <span>Preferences</span>
+                        </Link>
+                    )}
+
                     {isOwnerOrProvider && (
                         <button
                             onClick={onOpenCreateModal}
