@@ -7,6 +7,7 @@ import Register from './pages/Register';
 import ListingsBrowse from './pages/ListingsBrowse';
 import ListingDetail from './pages/ListingDetail';
 import PreferencesPage from './pages/PreferencesPage';
+import RoommateMatches from './pages/RoommateMatches';
 import './index.css';
 
 function App() {
@@ -20,6 +21,7 @@ function App() {
             <Route path="/" element={<ListingsBrowse />} />
             <Route path="/listings/:id" element={<ListingDetail />} />
             <Route path="/preferences" element={<PreferencesPage />} />
+            <Route path="/matches" element={<RoommateMatches />} />
           </Route>
         </Routes>
       </Router>

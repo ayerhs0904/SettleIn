@@ -13,6 +13,7 @@ C:\anti projects\SettleIn\backend\src\main\java\com\settlein\backend\dto\AiSearc
 C:\anti projects\SettleIn\backend\src\main\java\com\settlein\backend\dto\AiSearchResponse.java
 C:\anti projects\SettleIn\backend\src\main\java\com\settlein\backend\dto\AuthRequest.java
 C:\anti projects\SettleIn\backend\src\main\java\com\settlein\backend\dto\AuthResponse.java
+C:\anti projects\SettleIn\backend\src\main\java\com\settlein\backend\dto\FlatmateMatchResponse.java
 C:\anti projects\SettleIn\backend\src\main\java\com\settlein\backend\dto\FlatmatePreferenceRequest.java
 C:\anti projects\SettleIn\backend\src\main\java\com\settlein\backend\dto\FlatmatePreferenceResponse.java
 C:\anti projects\SettleIn\backend\src\main\java\com\settlein\backend\dto\ListingRequest.java
@@ -30,5 +31,6 @@ C:\anti projects\SettleIn\backend\src\main\java\com\settlein\backend\repository\
 C:\anti projects\SettleIn\backend\src\main\java\com\settlein\backend\service\AiSearchService.java
 C:\anti projects\SettleIn\backend\src\main\java\com\settlein\backend\service\AuthService.java
 C:\anti projects\SettleIn\backend\src\main\java\com\settlein\backend\service\EmbeddingService.java
+C:\anti projects\SettleIn\backend\src\main\java\com\settlein\backend\service\FlatmateMatchingService.java
 C:\anti projects\SettleIn\backend\src\main\java\com\settlein\backend\service\FlatmatePreferenceService.java
 C:\anti projects\SettleIn\backend\src\main\java\com\settlein\backend\service\ListingService.java

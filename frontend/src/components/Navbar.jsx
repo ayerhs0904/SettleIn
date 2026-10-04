@@ -37,13 +37,22 @@ const Navbar = ({ onOpenCreateModal }) => {
                     )}
 
                     {user && (
-                        <Link
-                            to="/preferences"
-                            className="text-gray-300 hover:text-white px-3 py-2 text-sm font-medium transition-colors flex items-center space-x-1"
-                        >
-                            <span>⚙️</span>
-                            <span>Preferences</span>
-                        </Link>
+                        <>
+                            <Link
+                                to="/matches"
+                                className="text-gray-300 hover:text-white px-3 py-2 text-sm font-medium transition-colors flex items-center space-x-1"
+                            >
+                                <span>✨</span>
+                                <span>Find Roommates</span>
+                            </Link>
+                            <Link
+                                to="/preferences"
+                                className="text-gray-300 hover:text-white px-3 py-2 text-sm font-medium transition-colors flex items-center space-x-1"
+                            >
+                                <span>⚙️</span>
+                                <span>Preferences</span>
+                            </Link>
+                        </>
                     )}
 
                     {isOwnerOrProvider && (
