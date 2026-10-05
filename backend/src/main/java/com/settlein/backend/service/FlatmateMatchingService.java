@@ -1,19 +1,19 @@
 package com.settlein.backend.service;
 
-import com.settlein.backend.dto.FlatmateMatchResponse;
-import com.settlein.backend.dto.FlatmatePreferenceResponse;
-import com.settlein.backend.entity.FlatmatePreference;
-import com.settlein.backend.entity.User;
+import com.settlein.backend.dto.*;
+import com.settlein.backend.entity.*;
+import com.settlein.backend.repository.FlatmateInteractionRepository;
 import com.settlein.backend.repository.FlatmatePreferenceRepository;
+import com.settlein.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+import java.time.LocalDateTime;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -22,6 +22,8 @@ import java.util.stream.Collectors;
 public class FlatmateMatchingService {
 
     private final FlatmatePreferenceRepository preferenceRepository;
+    private final FlatmateInteractionRepository interactionRepository;
+    private final UserRepository userRepository;
 
     public List<FlatmateMatchResponse> findTopMatches(User currentUser, int topN) {
         log.info("Computing top {} flatmate matches for user ID {}", topN, currentUser.getId());
@@ -32,13 +34,19 @@ public class FlatmateMatchingService {
                         "Please complete your roommate preferences profile first before searching for matches."
                 ));
 
+        List<Long> interactedUserIds = interactionRepository.findInteractedUserIdsByFromUser(currentUser);
+
         List<FlatmatePreference> allPreferences = preferenceRepository.findAll();
 
         List<MatchCandidate> candidates = new ArrayList<>();
 
         for (FlatmatePreference candidatePref : allPreferences) {
-            if (candidatePref.getUser().getId().equals(currentUser.getId())) {
+            Long candidateUserId = candidatePref.getUser().getId();
+            if (candidateUserId.equals(currentUser.getId())) {
                 continue; // Skip self
+            }
+            if (interactedUserIds.contains(candidateUserId)) {
+                continue; // Skip already interacted candidates
             }
 
             double similarity = calculateCosineSimilarity(targetPref.getEmbedding(), candidatePref.getEmbedding());
@@ -62,6 +70,118 @@ public class FlatmateMatchingService {
                             .build();
                 })
                 .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public FlatmateInteractionResponse recordInteraction(User currentUser, FlatmateInteractionRequest request) {
+        if (request.getTargetUserId().equals(currentUser.getId())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You cannot interact with your own profile.");
+        }
+
+        User targetUser = userRepository.findById(request.getTargetUserId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Target user not found."));
+
+        Optional<FlatmateInteraction> existingOpt = interactionRepository.findByFromUserAndToUser(currentUser, targetUser);
+        FlatmateInteraction interaction;
+        if (existingOpt.isPresent()) {
+            interaction = existingOpt.get();
+            interaction.setStatus(request.getAction());
+        } else {
+            interaction = FlatmateInteraction.builder()
+                    .fromUser(currentUser)
+                    .toUser(targetUser)
+                    .status(request.getAction())
+                    .createdAt(LocalDateTime.now())
+                    .build();
+        }
+        interactionRepository.save(interaction);
+
+        boolean isMutual = false;
+        if (request.getAction() == InteractionStatus.INTERESTED) {
+            Optional<FlatmateInteraction> reverseOpt = interactionRepository.findByFromUserAndToUser(targetUser, currentUser);
+            if (reverseOpt.isPresent() && reverseOpt.get().getStatus() == InteractionStatus.INTERESTED) {
+                isMutual = true;
+            }
+        }
+
+        String message = isMutual
+                ? "It's a mutual match! You both expressed interest in each other."
+                : (request.getAction() == InteractionStatus.INTERESTED ? "Expressed interest in " + targetUser.getName() : "Skipped " + targetUser.getName());
+
+        return FlatmateInteractionResponse.builder()
+                .mutualMatch(isMutual)
+                .message(message)
+                .build();
+    }
+
+    public FlatmateInterestGroupResponse getInterestsGroup(User currentUser) {
+        FlatmatePreference targetPref = preferenceRepository.findByUserId(currentUser.getId()).orElse(null);
+
+        // 1. Mutual Matches
+        List<FlatmateInteraction> mutualInteractions = interactionRepository.findMutualInterests(currentUser);
+        List<FlatmateMatchResponse> mutualMatches = mutualInteractions.stream()
+                .map(i -> buildMatchResponse(targetPref, i.getToUser()))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        // 2. Sent Interests (where current user expressed INTERESTED, excluding mutual matches)
+        Set<Long> mutualUserIds = mutualMatches.stream().map(FlatmateMatchResponse::getMatchUserId).collect(Collectors.toSet());
+        List<FlatmateInteraction> sentInteractions = interactionRepository.findByFromUserAndStatus(currentUser, InteractionStatus.INTERESTED);
+        List<FlatmateMatchResponse> sentInterests = sentInteractions.stream()
+                .filter(i -> !mutualUserIds.contains(i.getToUser().getId()))
+                .map(i -> buildMatchResponse(targetPref, i.getToUser()))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        // 3. Received Interests (where others expressed INTERESTED in current user, excluding mutual matches & skipped)
+        List<FlatmateInteraction> receivedInteractions = interactionRepository.findByToUserAndStatus(currentUser, InteractionStatus.INTERESTED);
+        List<Long> skippedUserIds = interactionRepository.findByFromUserAndStatus(currentUser, InteractionStatus.SKIPPED)
+                .stream().map(i -> i.getToUser().getId()).collect(Collectors.toList());
+
+        List<FlatmateMatchResponse> receivedInterests = receivedInteractions.stream()
+                .filter(i -> !mutualUserIds.contains(i.getFromUser().getId()) && !skippedUserIds.contains(i.getFromUser().getId()))
+                .map(i -> buildMatchResponse(targetPref, i.getFromUser()))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        return FlatmateInterestGroupResponse.builder()
+                .mutualMatches(mutualMatches)
+                .sentInterests(sentInterests)
+                .receivedInterests(receivedInterests)
+                .build();
+    }
+
+    private FlatmateMatchResponse buildMatchResponse(FlatmatePreference targetPref, User otherUser) {
+        Optional<FlatmatePreference> otherPrefOpt = preferenceRepository.findByUserId(otherUser.getId());
+        if (otherPrefOpt.isEmpty()) {
+            return FlatmateMatchResponse.builder()
+                    .matchUserId(otherUser.getId())
+                    .matchUserName(otherUser.getName())
+                    .matchUserEmail(otherUser.getEmail())
+                    .compatibilityScore(75.0)
+                    .compatibilitySummary(otherUser.getName() + " has expressed interest in finding a roommate.")
+                    .preference(null)
+                    .build();
+        }
+
+        FlatmatePreference otherPref = otherPrefOpt.get();
+        double score = 75.0;
+        String summary = otherUser.getName() + " is looking for a roommate.";
+
+        if (targetPref != null) {
+            double similarity = calculateCosineSimilarity(targetPref.getEmbedding(), otherPref.getEmbedding());
+            score = Math.min(99.0, Math.max(60.0, Math.round((similarity + 1.0) / 2.0 * 100.0 * 10.0) / 10.0));
+            summary = generateCompatibilitySummary(targetPref, otherPref, score);
+        }
+
+        return FlatmateMatchResponse.builder()
+                .matchUserId(otherUser.getId())
+                .matchUserName(otherUser.getName())
+                .matchUserEmail(otherUser.getEmail())
+                .compatibilityScore(score)
+                .compatibilitySummary(summary)
+                .preference(mapToResponse(otherPref))
+                .build();
     }
 
     private double calculateCosineSimilarity(float[] vectorA, float[] vectorB) {

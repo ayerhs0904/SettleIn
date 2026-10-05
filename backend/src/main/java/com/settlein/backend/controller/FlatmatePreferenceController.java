@@ -1,16 +1,13 @@
 package com.settlein.backend.controller;
 
-import com.settlein.backend.dto.FlatmatePreferenceRequest;
-import com.settlein.backend.dto.FlatmatePreferenceResponse;
+import com.settlein.backend.dto.*;
 import com.settlein.backend.entity.User;
+import com.settlein.backend.service.FlatmateMatchingService;
 import com.settlein.backend.service.FlatmatePreferenceService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
-import com.settlein.backend.dto.FlatmateMatchResponse;
-import com.settlein.backend.service.FlatmateMatchingService;
 
 import java.util.List;
 
@@ -25,10 +22,25 @@ public class FlatmatePreferenceController {
 
     @GetMapping("/matches")
     public ResponseEntity<List<FlatmateMatchResponse>> getTopMatches(
-            @RequestParam(defaultValue = "5") int top,
+            @RequestParam(defaultValue = "10") int top,
             @AuthenticationPrincipal User currentUser
     ) {
         return ResponseEntity.ok(matchingService.findTopMatches(currentUser, top));
+    }
+
+    @PostMapping("/interact")
+    public ResponseEntity<FlatmateInteractionResponse> recordInteraction(
+            @RequestBody FlatmateInteractionRequest request,
+            @AuthenticationPrincipal User currentUser
+    ) {
+        return ResponseEntity.ok(matchingService.recordInteraction(currentUser, request));
+    }
+
+    @GetMapping("/interests")
+    public ResponseEntity<FlatmateInterestGroupResponse> getInterestsGroup(
+            @AuthenticationPrincipal User currentUser
+    ) {
+        return ResponseEntity.ok(matchingService.getInterestsGroup(currentUser));
     }
 
     @PostMapping
