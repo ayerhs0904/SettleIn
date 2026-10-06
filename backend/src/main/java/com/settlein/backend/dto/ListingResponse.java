@@ -24,4 +24,9 @@ public class ListingResponse {
     private List<String> images;
     private Long ownerId;
     private String ownerName;
+
+    // Trust Score fields
+    private Integer trustScore;
+    private String trustBadge; // VERIFIED, CAUTION, UNVERIFIED
+    private List<String> trustFlags;
 }

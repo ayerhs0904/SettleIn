@@ -21,6 +21,7 @@ import java.util.ArrayList;
 public class ListingService {
 
     private final ListingRepository listingRepository;
+    private final TrustScoreService trustScoreService;
 
     public ListingResponse createListing(ListingRequest request, User owner) {
         Listing listing = Listing.builder()
@@ -34,6 +35,9 @@ public class ListingService {
                 .images(request.getImages() != null ? request.getImages() : new ArrayList<>())
                 .owner(owner)
                 .build();
+
+        // Evaluate trust score before initial save
+        trustScoreService.evaluateTrustScore(listing);
 
         Listing saved = listingRepository.save(listing);
         return mapToResponse(saved);
@@ -71,6 +75,9 @@ public class ListingService {
         if (request.getAmenities() != null) listing.setAmenities(request.getAmenities());
         if (request.getImages() != null) listing.setImages(request.getImages());
 
+        // Re-evaluate trust score on update
+        trustScoreService.evaluateTrustScore(listing);
+
         Listing updated = listingRepository.save(listing);
         return mapToResponse(updated);
     }
@@ -91,6 +98,11 @@ public class ListingService {
     }
 
     private ListingResponse mapToResponse(Listing listing) {
+        // Evaluate dynamically if missing
+        if (listing.getTrustScore() == null || listing.getTrustBadge() == null) {
+            trustScoreService.evaluateTrustScore(listing);
+        }
+
         return ListingResponse.builder()
                 .id(listing.getId())
                 .title(listing.getTitle())
@@ -103,6 +115,9 @@ public class ListingService {
                 .images(listing.getImages())
                 .ownerId(listing.getOwner().getId())
                 .ownerName(listing.getOwner().getName())
+                .trustScore(listing.getTrustScore())
+                .trustBadge(listing.getTrustBadge())
+                .trustFlags(listing.getTrustFlags())
                 .build();
     }
 }

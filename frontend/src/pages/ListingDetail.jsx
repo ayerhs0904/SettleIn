@@ -82,6 +82,37 @@ const ListingDetail = () => {
 
     const isOwner = user && listing.ownerName === user.name;
 
+    // Trust Score Badge colors and icon
+    const badge = listing.trustBadge || 'VERIFIED';
+    const score = listing.trustScore !== undefined ? listing.trustScore : 95;
+    const flags = listing.trustFlags || [];
+
+    const getTrustBadgeStyle = (b) => {
+        switch (b) {
+            case 'VERIFIED':
+                return {
+                    bg: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40',
+                    icon: '🛡️',
+                    label: 'Verified Listing'
+                };
+            case 'CAUTION':
+                return {
+                    bg: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
+                    icon: '⚠️',
+                    label: 'Caution Recommended'
+                };
+            case 'UNVERIFIED':
+            default:
+                return {
+                    bg: 'bg-red-500/20 text-red-300 border-red-500/40',
+                    icon: '❌',
+                    label: 'Unverified / Flagged'
+                };
+        }
+    };
+
+    const trustStyle = getTrustBadgeStyle(badge);
+
     return (
         <div className="min-h-screen bg-gray-900 text-white flex flex-col font-sans">
             <Navbar />
@@ -108,7 +139,15 @@ const ListingDetail = () => {
                                 {listing.listingType}
                             </span>
                             <span className="text-gray-400 text-sm">{listing.city}</span>
+
+                            {/* Trust Badge Header Pill */}
+                            <span className={`px-3 py-1 rounded-full text-xs font-bold border flex items-center space-x-1 ${trustStyle.bg}`}>
+                                <span>{trustStyle.icon}</span>
+                                <span>{trustStyle.label}</span>
+                                <span className="font-mono">({score}/100)</span>
+                            </span>
                         </div>
+
                         <h1 className="text-3xl sm:text-4xl font-extrabold text-white">{listing.title}</h1>
                         <p className="text-gray-400 mt-1 flex items-center">
                             <svg className="w-4 h-4 mr-1 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -213,8 +252,58 @@ const ListingDetail = () => {
                         </div>
                     </div>
 
-                    {/* Right Col: Owner Contact Card */}
+                    {/* Right Col: Trust Breakdown Card & Owner Contact Card */}
                     <div className="space-y-6">
+                        {/* TRUST SCORE breakdown CARD */}
+                        <div className="bg-gray-800/90 border border-gray-700 p-6 rounded-2xl shadow-xl space-y-4">
+                            <div className="flex items-center justify-between border-b border-gray-700 pb-3">
+                                <div className="flex items-center space-x-2">
+                                    <span className="text-2xl">{trustStyle.icon}</span>
+                                    <div>
+                                        <h3 className="font-extrabold text-white text-base">Listing Trust Analysis</h3>
+                                        <span className="text-xs text-gray-400">Heuristic verification breakdown</span>
+                                    </div>
+                                </div>
+                                <div className="text-right">
+                                    <span className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">
+                                        {score}
+                                    </span>
+                                    <span className="text-xs text-gray-400">/100</span>
+                                </div>
+                            </div>
+
+                            {/* Trust score progress bar */}
+                            <div className="w-full bg-gray-900 rounded-full h-2.5 overflow-hidden border border-gray-700">
+                                <div
+                                    className={`h-full transition-all duration-500 ${
+                                        score >= 80 ? 'bg-gradient-to-r from-emerald-500 to-teal-400' :
+                                        score >= 50 ? 'bg-gradient-to-r from-amber-500 to-orange-400' :
+                                        'bg-gradient-to-r from-red-600 to-rose-500'
+                                    }`}
+                                    style={{ width: `${score}%` }}
+                                ></div>
+                            </div>
+
+                            {/* Heuristics Flags */}
+                            <div className="space-y-2 pt-1">
+                                <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400">Audit Flags</h4>
+                                {flags.length > 0 ? (
+                                    <div className="space-y-2">
+                                        {flags.map((flag, idx) => (
+                                            <div key={idx} className="bg-gray-900/80 border border-gray-700/60 rounded-xl p-3 text-xs text-gray-200 leading-relaxed">
+                                                {flag}
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="bg-emerald-950/40 border border-emerald-800/40 rounded-xl p-3 text-xs text-emerald-300">
+                                        ✅ All heuristic checks passed. No outlier or duplicate flags detected.
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* OWNER CONTACT CARD */}
                         <div className="bg-gradient-to-b from-gray-800 to-gray-850 p-6 rounded-2xl border border-gray-700/80 shadow-xl space-y-5">
                             <h3 className="text-lg font-bold text-white border-b border-gray-700 pb-3">Listed By Owner</h3>
                             <div className="flex items-center space-x-4">

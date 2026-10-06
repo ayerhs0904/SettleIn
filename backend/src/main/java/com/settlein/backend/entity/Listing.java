@@ -55,4 +55,18 @@ public class Listing {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_id", nullable = false)
     private User owner;
+
+    @Column(name = "trust_score")
+    @Builder.Default
+    private Integer trustScore = 100;
+
+    @Column(name = "trust_badge")
+    @Builder.Default
+    private String trustBadge = "VERIFIED";
+
+    @ElementCollection
+    @CollectionTable(name = "listing_trust_flags", joinColumns = @JoinColumn(name = "listing_id"))
+    @Column(name = "trust_flag")
+    @Builder.Default
+    private List<String> trustFlags = new ArrayList<>();
 }
