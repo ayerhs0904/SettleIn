@@ -49,6 +49,14 @@ const Navbar = ({ onOpenCreateModal }) => {
                             </Link>
 
                             <Link
+                                to="/tiffin-services"
+                                className={`px-3 py-2 rounded-xl transition flex items-center space-x-1 ${isActive('/tiffin-services') ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold' : 'text-gray-300 hover:text-white hover:bg-gray-700/50'}`}
+                            >
+                                <span>🍱</span>
+                                <span>Tiffin Services</span>
+                            </Link>
+
+                            <Link
                                 to="/find-flatmates"
                                 className={`px-3 py-2 rounded-xl transition flex items-center space-x-1 ${isActive('/find-flatmates') || isActive('/matches') ? 'bg-gradient-to-r from-pink-500/20 to-purple-500/20 text-pink-300 border border-pink-500/40 font-bold' : 'text-gray-300 hover:text-white hover:bg-gray-700/50'}`}
                             >

@@ -9,6 +9,7 @@ import ListingDetail from './pages/ListingDetail';
 import PreferencesPage from './pages/PreferencesPage';
 import FindFlatmates from './pages/FindFlatmates';
 import MyMatches from './pages/MyMatches';
+import TiffinServices from './pages/TiffinServices';
 import './index.css';
 
 function App() {
@@ -25,6 +26,7 @@ function App() {
             <Route path="/find-flatmates" element={<FindFlatmates />} />
             <Route path="/matches" element={<FindFlatmates />} />
             <Route path="/my-matches" element={<MyMatches />} />
+            <Route path="/tiffin-services" element={<TiffinServices />} />
           </Route>
         </Routes>
       </Router>
