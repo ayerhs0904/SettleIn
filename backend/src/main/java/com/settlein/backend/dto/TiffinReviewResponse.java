@@ -15,6 +15,8 @@ public class TiffinReviewResponse {
     private Long id;
     private Integer rating;
     private String comment;
+    private String sentiment; // POSITIVE, NEUTRAL, NEGATIVE
+    private Double sentimentScore;
     private Long userId;
     private String userName;
     private LocalDateTime createdAt;

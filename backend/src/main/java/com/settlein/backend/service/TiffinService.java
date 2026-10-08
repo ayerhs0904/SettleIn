@@ -23,6 +23,7 @@ public class TiffinService {
     private final TiffinProviderRepository providerRepository;
     private final TiffinReviewRepository reviewRepository;
     private final FlatmatePreferenceRepository preferenceRepository;
+    private final SentimentAnalysisService sentimentAnalysisService;
 
     @Transactional
     public TiffinProviderResponse createProvider(TiffinProviderRequest request, User owner) {
@@ -102,9 +103,15 @@ public class TiffinService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Rating must be between 1 and 5 stars");
         }
 
+        // Evaluate sentiment classification
+        SentimentAnalysisService.SentimentResult sentimentRes =
+                sentimentAnalysisService.analyzeSentiment(request.getComment(), request.getRating());
+
         TiffinReview review = TiffinReview.builder()
                 .rating(request.getRating())
                 .comment(request.getComment())
+                .sentiment(sentimentRes.getSentiment())
+                .sentimentScore(sentimentRes.getSentimentScore())
                 .provider(provider)
                 .user(user)
                 .build();
@@ -115,6 +122,8 @@ public class TiffinService {
                 .id(saved.getId())
                 .rating(saved.getRating())
                 .comment(saved.getComment())
+                .sentiment(saved.getSentiment())
+                .sentimentScore(saved.getSentimentScore())
                 .userId(user.getId())
                 .userName(user.getName())
                 .createdAt(saved.getCreatedAt())
@@ -123,18 +132,29 @@ public class TiffinService {
 
     public List<TiffinReviewResponse> getProviderReviews(Long providerId) {
         return reviewRepository.findByProviderIdOrderByCreatedAtDesc(providerId).stream()
-                .map(r -> TiffinReviewResponse.builder()
-                        .id(r.getId())
-                        .rating(r.getRating())
-                        .comment(r.getComment())
-                        .userId(r.getUser().getId())
-                        .userName(r.getUser().getName())
-                        .createdAt(r.getCreatedAt())
-                        .build())
+                .map(r -> {
+                    String sentiment = r.getSentiment();
+                    Double score = r.getSentimentScore();
+                    if (sentiment == null) {
+                        SentimentAnalysisService.SentimentResult sr = sentimentAnalysisService.analyzeSentiment(r.getComment(), r.getRating());
+                        sentiment = sr.getSentiment();
+                        score = sr.getSentimentScore();
+                    }
+                    return TiffinReviewResponse.builder()
+                            .id(r.getId())
+                            .rating(r.getRating())
+                            .comment(r.getComment())
+                            .sentiment(sentiment)
+                            .sentimentScore(score)
+                            .userId(r.getUser().getId())
+                            .userName(r.getUser().getName())
+                            .createdAt(r.getCreatedAt())
+                            .build();
+                })
                 .collect(Collectors.toList());
     }
 
-    // --- RECOMMENDATION ENGINE ---
+    // --- RECOMMENDATION ENGINE WITH SENTIMENT WEIGHT ---
 
     public List<TiffinProviderResponse> getRecommendations(User currentUser) {
         FlatmatePreference userPref = preferenceRepository.findByUserId(currentUser.getId()).orElse(null);
@@ -173,11 +193,19 @@ public class TiffinService {
                 rationale.add("Located in/near preferred area (" + provider.getArea() + ")");
             }
 
-            // 3. Rating Boost
+            // 3. Rating & Sentiment Boost
             if (response.getAverageRating() > 0) {
                 double ratingBoost = (response.getAverageRating() / 5.0) * 10.0;
                 score += ratingBoost;
                 rationale.add(String.format(Locale.US, "High rating of %.1f★ (%d reviews)", response.getAverageRating(), response.getReviewCount()));
+            }
+
+            if (response.getPositiveSentimentPercentage() > 0) {
+                double sentimentBoost = (response.getPositiveSentimentPercentage() / 100.0) * 10.0;
+                score += sentimentBoost;
+                if (response.getPositiveSentimentPercentage() >= 75.0) {
+                    rationale.add(String.format(Locale.US, "%.0f%% Positive customer sentiment", response.getPositiveSentimentPercentage()));
+                }
             }
 
             double finalScore = Math.min(99.0, Math.max(50.0, Math.round(score * 10.0) / 10.0));
@@ -189,6 +217,12 @@ public class TiffinService {
 
         // Sort by recommendation score descending
         ranked.sort(Comparator.comparingDouble(TiffinProviderResponse::getRecommendationScore).reversed());
+
+        // Mark the top candidate as Best Match
+        if (!ranked.isEmpty()) {
+            ranked.get(0).setBestMatch(true);
+        }
+
         return ranked;
     }
 
@@ -199,17 +233,39 @@ public class TiffinService {
         double avgRating = reviews.isEmpty() ? 0.0 : reviews.stream().mapToInt(TiffinReview::getRating).average().orElse(0.0);
         avgRating = Math.round(avgRating * 10.0) / 10.0;
 
+        // Calculate positive sentiment percentage
+        long positiveCount = reviews.stream().filter(r -> {
+            String s = r.getSentiment();
+            if (s == null) {
+                s = sentimentAnalysisService.analyzeSentiment(r.getComment(), r.getRating()).getSentiment();
+            }
+            return "POSITIVE".equals(s);
+        }).count();
+
+        double positiveSentimentPct = reviews.isEmpty() ? 0.0 : Math.round((double) positiveCount / reviews.size() * 100.0 * 10.0) / 10.0;
+
         List<TiffinReviewResponse> reviewResponses = null;
         if (includeReviews) {
             reviewResponses = reviews.stream()
-                    .map(r -> TiffinReviewResponse.builder()
-                            .id(r.getId())
-                            .rating(r.getRating())
-                            .comment(r.getComment())
-                            .userId(r.getUser().getId())
-                            .userName(r.getUser().getName())
-                            .createdAt(r.getCreatedAt())
-                            .build())
+                    .map(r -> {
+                        String sentiment = r.getSentiment();
+                        Double score = r.getSentimentScore();
+                        if (sentiment == null) {
+                            SentimentAnalysisService.SentimentResult sr = sentimentAnalysisService.analyzeSentiment(r.getComment(), r.getRating());
+                            sentiment = sr.getSentiment();
+                            score = sr.getSentimentScore();
+                        }
+                        return TiffinReviewResponse.builder()
+                                .id(r.getId())
+                                .rating(r.getRating())
+                                .comment(r.getComment())
+                                .sentiment(sentiment)
+                                .sentimentScore(score)
+                                .userId(r.getUser().getId())
+                                .userName(r.getUser().getName())
+                                .createdAt(r.getCreatedAt())
+                                .build();
+                    })
                     .collect(Collectors.toList());
         }
 
@@ -228,6 +284,7 @@ public class TiffinService {
                 .ownerName(provider.getOwner().getName())
                 .averageRating(avgRating)
                 .reviewCount(reviews.size())
+                .positiveSentimentPercentage(positiveSentimentPct)
                 .reviews(reviewResponses)
                 .build();
     }

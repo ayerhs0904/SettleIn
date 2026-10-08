@@ -90,6 +90,24 @@ const TiffinServices = () => {
         }
     };
 
+    // Simple live sentiment estimation preview helper for review form
+    const getLiveSentimentPreview = (text, rating) => {
+        if (!text && !rating) return null;
+        const lower = (text || '').toLowerCase();
+        const posWords = ['delicious', 'tasty', 'fresh', 'great', 'good', 'loved', 'awesome', 'clean', 'best', 'homely'];
+        const negWords = ['terrible', 'bad', 'stale', 'late', 'cold', 'salty', 'worst', 'horrible', 'dirty', 'poor'];
+        
+        let p = 0, n = 0;
+        posWords.forEach(w => { if (lower.includes(w)) p++; });
+        negWords.forEach(w => { if (lower.includes(w)) n++; });
+
+        const score = (p - n) + (rating >= 4 ? 2 : (rating <= 2 ? -2 : 0));
+        if (score > 0) return { label: 'Positive', emoji: '😊', style: 'text-emerald-400 border-emerald-500/40 bg-emerald-950/40' };
+        if (score < 0) return { label: 'Negative', emoji: '☹️', style: 'text-red-400 border-red-500/40 bg-red-950/40' };
+        return { label: 'Neutral', emoji: '😐', style: 'text-gray-300 border-gray-600 bg-gray-800' };
+    };
+
+    const liveSentiment = getLiveSentimentPreview(reviewComment, reviewRating);
     const isOwnerOrProvider = user?.role === 'OWNER' || user?.role === 'PROVIDER';
     const displayList = activeTab === 'recommended' ? recommendations : providers;
 
@@ -102,13 +120,13 @@ const TiffinServices = () => {
                 <div className="border-b border-gray-800 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
                         <div className="flex items-center space-x-2 text-amber-400 font-extrabold text-sm uppercase tracking-wider mb-1">
-                            <span>🍱 Meal & Food Service</span>
+                            <span>🍱 Meal & Food Marketplace</span>
                         </div>
                         <h1 className="text-3xl sm:text-4xl font-extrabold text-white">
                             Tiffin <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-orange-400 to-red-400">Providers & Thalis</span>
                         </h1>
                         <p className="text-gray-400 text-sm mt-1">
-                            Discover daily thali & home-cooked food providers matched to your dietary preference.
+                            Discover daily thalis & cooks ranked by dietary match, ratings, and customer sentiment analysis.
                         </p>
                     </div>
 
@@ -211,7 +229,9 @@ const TiffinServices = () => {
                             return (
                                 <div
                                     key={provider.id}
-                                    className="bg-gray-800/90 border border-gray-700/70 rounded-3xl overflow-hidden shadow-xl hover:shadow-2xl hover:border-amber-500/50 transition duration-300 flex flex-col justify-between"
+                                    className={`bg-gray-800/90 border rounded-3xl overflow-hidden shadow-xl hover:shadow-2xl transition duration-300 flex flex-col justify-between relative ${
+                                        provider.bestMatch ? 'border-amber-400 ring-2 ring-amber-400/40' : 'border-gray-700/70 hover:border-amber-500/50'
+                                    }`}
                                 >
                                     <div>
                                         {/* Image Header */}
@@ -224,12 +244,22 @@ const TiffinServices = () => {
                                                     e.target.src = 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80';
                                                 }}
                                             />
-                                            <div className="absolute top-3 left-3 bg-amber-500 text-black px-3 py-1 rounded-full text-xs font-black uppercase shadow-md">
-                                                {provider.cuisineType}
-                                            </div>
+
+                                            {/* Best Match Badge */}
+                                            {provider.bestMatch && (
+                                                <div className="absolute top-3 left-3 bg-gradient-to-r from-amber-400 to-yellow-500 text-black px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider shadow-lg flex items-center space-x-1 animate-pulse">
+                                                    <span>🏆 Best Match for You</span>
+                                                </div>
+                                            )}
+
+                                            {!provider.bestMatch && (
+                                                <div className="absolute top-3 left-3 bg-amber-500 text-black px-3 py-1 rounded-full text-xs font-black uppercase shadow-md">
+                                                    {provider.cuisineType}
+                                                </div>
+                                            )}
 
                                             {provider.recommendationScore && (
-                                                <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-md border border-amber-500/40 text-amber-300 px-3 py-1 rounded-full text-xs font-extrabold shadow-lg">
+                                                <div className="absolute top-3 right-3 bg-black/70 backdrop-blur-md border border-amber-500/40 text-amber-300 px-3 py-1 rounded-full text-xs font-extrabold shadow-lg">
                                                     🎯 {provider.recommendationScore}% Match
                                                 </div>
                                             )}
@@ -260,13 +290,20 @@ const TiffinServices = () => {
                                                 </div>
                                             )}
 
-                                            {/* Dietary Options Tags */}
+                                            {/* Dietary & Sentiment Badges */}
                                             <div className="flex flex-wrap gap-1.5 pt-1">
                                                 {provider.dietaryOptions && provider.dietaryOptions.map((diet, idx) => (
                                                     <span key={idx} className="bg-gray-900 text-gray-300 text-xs px-2.5 py-1 rounded-lg border border-gray-700 font-medium">
                                                         🥗 {diet}
                                                     </span>
                                                 ))}
+
+                                                {provider.positiveSentimentPercentage > 0 && (
+                                                    <span className="bg-emerald-950/60 text-emerald-300 text-xs px-2.5 py-1 rounded-lg border border-emerald-700/60 font-semibold flex items-center space-x-1">
+                                                        <span>😊</span>
+                                                        <span>{provider.positiveSentimentPercentage}% Positive</span>
+                                                    </span>
+                                                )}
                                             </div>
 
                                             {provider.description && (
@@ -306,7 +343,14 @@ const TiffinServices = () => {
                     <div className="bg-gray-800 border border-gray-700 rounded-3xl max-w-2xl w-full p-6 sm:p-8 space-y-6 shadow-2xl relative my-8">
                         <div className="flex justify-between items-start border-b border-gray-700 pb-4">
                             <div>
-                                <span className="text-xs font-bold uppercase text-amber-400">{selectedProvider.cuisineType} Cuisine</span>
+                                <div className="flex items-center space-x-2 mb-1">
+                                    <span className="text-xs font-bold uppercase text-amber-400">{selectedProvider.cuisineType} Cuisine</span>
+                                    {selectedProvider.positiveSentimentPercentage > 0 && (
+                                        <span className="bg-emerald-500/20 text-emerald-300 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-500/30">
+                                            😊 {selectedProvider.positiveSentimentPercentage}% Positive Sentiment
+                                        </span>
+                                    )}
+                                </div>
                                 <h2 className="text-2xl font-extrabold text-white">{selectedProvider.name}</h2>
                                 <p className="text-xs text-gray-400">📍 {selectedProvider.area}, {selectedProvider.city}</p>
                             </div>
@@ -339,10 +383,18 @@ const TiffinServices = () => {
 
                         {/* Add Review Section */}
                         <div className="border-t border-gray-700 pt-4 space-y-3">
-                            <h4 className="text-sm font-bold text-white flex items-center space-x-2">
-                                <span>⭐</span>
-                                <span>Write a Review</span>
-                            </h4>
+                            <div className="flex justify-between items-center">
+                                <h4 className="text-sm font-bold text-white flex items-center space-x-2">
+                                    <span>⭐</span>
+                                    <span>Write a Review</span>
+                                </h4>
+                                {liveSentiment && (
+                                    <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold border ${liveSentiment.style}`}>
+                                        {liveSentiment.emoji} Live Sentiment: {liveSentiment.label}
+                                    </span>
+                                )}
+                            </div>
+
                             <form onSubmit={handleAddReview} className="space-y-3 text-xs">
                                 <div className="flex items-center space-x-3">
                                     <span className="text-gray-300 font-semibold">Rating:</span>
@@ -377,22 +429,35 @@ const TiffinServices = () => {
                             </form>
                         </div>
 
-                        {/* Existing Reviews List */}
+                        {/* Existing Reviews List with Sentiment Badges */}
                         <div className="border-t border-gray-700 pt-4 space-y-3 max-h-60 overflow-y-auto">
                             <h4 className="text-sm font-bold text-white">
                                 Customer Reviews ({selectedProvider.reviewCount || 0})
                             </h4>
                             {selectedProvider.reviews && selectedProvider.reviews.length > 0 ? (
                                 <div className="space-y-3">
-                                    {selectedProvider.reviews.map((rev) => (
-                                        <div key={rev.id} className="bg-gray-900/60 border border-gray-700/60 p-3 rounded-2xl space-y-1">
-                                            <div className="flex justify-between items-center">
-                                                <span className="font-bold text-white text-xs">{rev.userName}</span>
-                                                <span className="text-amber-400 text-xs">{'★'.repeat(rev.rating)}</span>
+                                    {selectedProvider.reviews.map((rev) => {
+                                        const isPos = rev.sentiment === 'POSITIVE';
+                                        const isNeg = rev.sentiment === 'NEGATIVE';
+                                        return (
+                                            <div key={rev.id} className="bg-gray-900/60 border border-gray-700/60 p-3 rounded-2xl space-y-1.5">
+                                                <div className="flex justify-between items-center">
+                                                    <div className="flex items-center space-x-2">
+                                                        <span className="font-bold text-white text-xs">{rev.userName}</span>
+                                                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold border ${
+                                                            isPos ? 'bg-emerald-950/60 text-emerald-300 border-emerald-600/40' :
+                                                            isNeg ? 'bg-red-950/60 text-red-300 border-red-600/40' :
+                                                            'bg-gray-800 text-gray-300 border-gray-600'
+                                                        }`}>
+                                                            {isPos ? '😊 Positive' : isNeg ? '☹️ Negative' : '😐 Neutral'}
+                                                        </span>
+                                                    </div>
+                                                    <span className="text-amber-400 text-xs">{'★'.repeat(rev.rating)}</span>
+                                                </div>
+                                                <p className="text-xs text-gray-300 leading-relaxed">{rev.comment}</p>
                                             </div>
-                                            <p className="text-xs text-gray-300 leading-relaxed">{rev.comment}</p>
-                                        </div>
-                                    ))}
+                                        );
+                                    })}
                                 </div>
                             ) : (
                                 <p className="text-xs text-gray-400 italic">No reviews written yet. Be the first to leave a review!</p>

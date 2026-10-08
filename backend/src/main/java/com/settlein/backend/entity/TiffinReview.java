@@ -23,6 +23,12 @@ public class TiffinReview {
     @Column(columnDefinition = "TEXT", nullable = false)
     private String comment;
 
+    @Column(name = "sentiment")
+    private String sentiment; // POSITIVE, NEUTRAL, NEGATIVE
+
+    @Column(name = "sentiment_score")
+    private Double sentimentScore; // +1.0, 0.0, -1.0
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "provider_id", nullable = false)
     private TiffinProvider provider;

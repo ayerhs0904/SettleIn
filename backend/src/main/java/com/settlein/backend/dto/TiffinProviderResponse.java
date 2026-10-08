@@ -29,7 +29,12 @@ public class TiffinProviderResponse {
     private double averageRating;
     private int reviewCount;
     private List<TiffinReviewResponse> reviews;
-    
+
+    // Sentiment breakdown stats
+    private double positiveSentimentPercentage; // e.g. 92.5%
+
+    // AI Recommendation & Best Match badge details
     private double recommendationScore; // e.g. 96.5%
-    private String recommendationReason; // AI rationale (e.g. "Matching Pure Veg diet in Sector 62 with 4.8★ rating")
+    private String recommendationReason; // AI rationale
+    private boolean bestMatch; // True for top recommended provider
 }
