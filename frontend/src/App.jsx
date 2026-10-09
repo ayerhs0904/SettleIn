@@ -10,6 +10,7 @@ import PreferencesPage from './pages/PreferencesPage';
 import FindFlatmates from './pages/FindFlatmates';
 import MyMatches from './pages/MyMatches';
 import TiffinServices from './pages/TiffinServices';
+import CityChatWidget from './components/CityChatWidget';
 import './index.css';
 
 function App() {
@@ -29,6 +30,7 @@ function App() {
             <Route path="/tiffin-services" element={<TiffinServices />} />
           </Route>
         </Routes>
+        <CityChatWidget />
       </Router>
     </AuthProvider>
   );
