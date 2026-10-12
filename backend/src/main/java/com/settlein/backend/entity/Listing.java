@@ -69,4 +69,8 @@ public class Listing {
     @Column(name = "trust_flag")
     @Builder.Default
     private List<String> trustFlags = new ArrayList<>();
+
+    @Column(name = "view_count")
+    @Builder.Default
+    private Long viewCount = 0L;
 }

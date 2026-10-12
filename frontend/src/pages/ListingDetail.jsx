@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { useAuth } from '../context/AuthContext';
+import { useBookmarks } from '../context/BookmarkContext';
 import api from '../services/api';
 
 const ListingDetail = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const { user } = useAuth();
+    const { isListingBookmarked, toggleBookmarkListing } = useBookmarks();
 
     const [listing, setListing] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -81,6 +83,7 @@ const ListingDetail = () => {
     }).format(listing.rent);
 
     const isOwner = user && listing.ownerName === user.name;
+    const isBookmarked = isListingBookmarked(listing?.id);
 
     // Trust Score Badge colors and icon
     const badge = listing.trustBadge || 'VERIFIED';
@@ -146,6 +149,12 @@ const ListingDetail = () => {
                                 <span>{trustStyle.label}</span>
                                 <span className="font-mono">({score}/100)</span>
                             </span>
+
+                            {/* View Count Pill */}
+                            <span className="bg-gray-800 text-cyan-300 border border-gray-700 px-3 py-1 rounded-full text-xs font-semibold flex items-center space-x-1">
+                                <span>👁️</span>
+                                <span>{listing.viewCount ? listing.viewCount + 1 : 1} Views</span>
+                            </span>
                         </div>
 
                         <h1 className="text-3xl sm:text-4xl font-extrabold text-white">{listing.title}</h1>
@@ -158,19 +167,35 @@ const ListingDetail = () => {
                         </p>
                     </div>
 
-                    <div className="flex flex-col sm:items-end justify-between">
+                    <div className="flex flex-col sm:items-end justify-between space-y-3">
                         <div className="text-3xl font-extrabold text-blue-400">
                             {formattedRent} <span className="text-sm font-normal text-gray-400">/month</span>
                         </div>
-                        {isOwner && (
+
+                        <div className="flex items-center space-x-2">
+                            {/* Bookmark Button */}
                             <button
-                                onClick={handleDelete}
-                                disabled={deleting}
-                                className="mt-3 bg-red-600/80 hover:bg-red-600 text-white text-xs font-bold px-4 py-2 rounded-xl border border-red-500/50 shadow-md transition"
+                                onClick={() => toggleBookmarkListing(listing)}
+                                className={`flex items-center space-x-1.5 px-4 py-2 rounded-xl text-xs font-bold border transition ${
+                                    isBookmarked
+                                        ? 'bg-pink-600 border-pink-500 text-white shadow-lg'
+                                        : 'bg-gray-800 border-gray-700 text-gray-300 hover:text-white hover:bg-gray-750'
+                                }`}
                             >
-                                {deleting ? 'Deleting...' : 'Delete Listing'}
+                                <span>{isBookmarked ? '❤️' : '🤍'}</span>
+                                <span>{isBookmarked ? 'Bookmarked' : 'Save Property'}</span>
                             </button>
-                        )}
+
+                            {isOwner && (
+                                <button
+                                    onClick={handleDelete}
+                                    disabled={deleting}
+                                    className="bg-red-600/80 hover:bg-red-600 text-white text-xs font-bold px-4 py-2 rounded-xl border border-red-500/50 shadow-md transition"
+                                >
+                                    {deleting ? 'Deleting...' : 'Delete Listing'}
+                                </button>
+                            )}
+                        </div>
                     </div>
                 </div>
 

@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import CreateTiffinModal from '../components/CreateTiffinModal';
+import SubscribeTiffinModal from '../components/SubscribeTiffinModal';
 import { useAuth } from '../context/AuthContext';
+import { useBookmarks } from '../context/BookmarkContext';
 import api from '../services/api';
 
 const TiffinServices = () => {
@@ -20,9 +22,12 @@ const TiffinServices = () => {
     // Modals
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [selectedProvider, setSelectedProvider] = useState(null);
+    const [subscribeModalProvider, setSubscribeModalProvider] = useState(null);
     const [reviewRating, setReviewRating] = useState(5);
     const [reviewComment, setReviewComment] = useState('');
     const [submittingReview, setSubmittingReview] = useState(false);
+
+    const { isProviderBookmarked, toggleBookmarkProvider } = useBookmarks();
 
     useEffect(() => {
         fetchData();
@@ -258,8 +263,25 @@ const TiffinServices = () => {
                                                 </div>
                                             )}
 
+                                            {/* Bookmark Button */}
+                                            <button
+                                                type="button"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    toggleBookmarkProvider(provider);
+                                                }}
+                                                title={isProviderBookmarked(provider.id) ? "Remove from bookmarks" : "Save provider"}
+                                                className={`absolute top-3 right-3 z-20 w-8 h-8 rounded-full backdrop-blur-md flex items-center justify-center transition shadow-md ${
+                                                    isProviderBookmarked(provider.id)
+                                                        ? 'bg-pink-600 text-white scale-110 shadow-pink-900/50'
+                                                        : 'bg-gray-900/80 text-gray-300 hover:text-pink-400 hover:scale-110 border border-gray-700/60'
+                                                }`}
+                                            >
+                                                {isProviderBookmarked(provider.id) ? '❤️' : '🤍'}
+                                            </button>
+
                                             {provider.recommendationScore && (
-                                                <div className="absolute top-3 right-3 bg-black/70 backdrop-blur-md border border-amber-500/40 text-amber-300 px-3 py-1 rounded-full text-xs font-extrabold shadow-lg">
+                                                <div className="absolute top-3 right-13 bg-black/70 backdrop-blur-md border border-amber-500/40 text-amber-300 px-3 py-1 rounded-full text-xs font-extrabold shadow-lg">
                                                     🎯 {provider.recommendationScore}% Match
                                                 </div>
                                             )}
@@ -323,12 +345,20 @@ const TiffinServices = () => {
                                             </span>
                                         </div>
 
-                                        <button
-                                            onClick={() => handleOpenDetailModal(provider.id)}
-                                            className="bg-gray-700 hover:bg-gray-600 text-white font-bold px-4 py-2 rounded-xl text-xs transition"
-                                        >
-                                            View Reviews & Menu ➔
-                                        </button>
+                                        <div className="flex items-center space-x-2">
+                                            <button
+                                                onClick={() => setSubscribeModalProvider(provider)}
+                                                className="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold px-3 py-2 rounded-xl text-xs transition shadow-md"
+                                            >
+                                                Subscribe
+                                            </button>
+                                            <button
+                                                onClick={() => handleOpenDetailModal(provider.id)}
+                                                className="bg-gray-700 hover:bg-gray-600 text-white font-bold px-3 py-2 rounded-xl text-xs transition"
+                                            >
+                                                Details ➔
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             );
@@ -472,6 +502,13 @@ const TiffinServices = () => {
                 isOpen={isCreateModalOpen}
                 onClose={() => setIsCreateModalOpen(false)}
                 onProviderCreated={() => fetchData()}
+            />
+
+            {/* Subscribe Tiffin Modal */}
+            <SubscribeTiffinModal
+                isOpen={!!subscribeModalProvider}
+                provider={subscribeModalProvider}
+                onClose={() => setSubscribeModalProvider(null)}
             />
         </div>
     );

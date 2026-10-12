@@ -29,4 +29,6 @@ public class ListingResponse {
     private Integer trustScore;
     private String trustBadge; // VERIFIED, CAUTION, UNVERIFIED
     private List<String> trustFlags;
+
+    private Long viewCount;
 }

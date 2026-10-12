@@ -1,9 +1,11 @@
 import React from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useBookmarks } from '../context/BookmarkContext';
 
 const Navbar = ({ onOpenCreateModal }) => {
     const { user, logout } = useAuth();
+    const { bookmarkedListings, bookmarkedProviders, subscriptions } = useBookmarks();
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -13,6 +15,7 @@ const Navbar = ({ onOpenCreateModal }) => {
     };
 
     const isOwnerOrProvider = user?.role === 'OWNER' || user?.role === 'PROVIDER';
+    const totalBadges = bookmarkedListings.length + bookmarkedProviders.length + subscriptions.length;
 
     const isActive = (path) => location.pathname === path;
 
@@ -41,6 +44,23 @@ const Navbar = ({ onOpenCreateModal }) => {
 
                     {user && (
                         <nav className="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm font-medium">
+                            <Link
+                                to="/dashboard"
+                                className={`px-3 py-2 rounded-xl transition flex items-center space-x-1.5 ${
+                                    isActive('/dashboard') 
+                                        ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold shadow-md' 
+                                        : 'text-gray-300 hover:text-white hover:bg-gray-700/50'
+                                }`}
+                            >
+                                <span>📊</span>
+                                <span>Dashboard</span>
+                                {totalBadges > 0 && (
+                                    <span className="bg-pink-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold">
+                                        {totalBadges}
+                                    </span>
+                                )}
+                            </Link>
+
                             <Link
                                 to="/"
                                 className={`px-3 py-2 rounded-xl transition ${isActive('/') ? 'bg-gray-700 text-white font-bold' : 'text-gray-300 hover:text-white hover:bg-gray-700/50'}`}

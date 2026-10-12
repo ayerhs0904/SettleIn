@@ -20,4 +20,6 @@ public interface ListingRepository extends JpaRepository<Listing, Long>, JpaSpec
 
     @Query("SELECT DISTINCT l FROM Listing l JOIN l.images img WHERE img IN :imageUrls AND l.owner.id != :ownerId")
     List<Listing> findListingsWithDuplicateImages(@Param("imageUrls") List<String> imageUrls, @Param("ownerId") Long ownerId);
+
+    List<Listing> findByOwnerId(Long ownerId);
 }

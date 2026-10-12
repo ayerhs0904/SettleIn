@@ -15,6 +15,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import com.settlein.backend.dto.CityAnalyticsResponse;
+import java.util.List;
+
 import com.settlein.backend.dto.AiSearchRequest;
 import com.settlein.backend.dto.AiSearchResponse;
 import com.settlein.backend.service.AiSearchService;
@@ -75,6 +78,21 @@ public class ListingController {
             @AuthenticationPrincipal User currentUser
     ) {
         return ResponseEntity.ok(listingService.updateListing(id, request, currentUser));
+    }
+
+    @GetMapping("/my-listings")
+    public ResponseEntity<List<ListingResponse>> getMyListings(
+            @AuthenticationPrincipal User currentUser
+    ) {
+        if (currentUser == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        return ResponseEntity.ok(listingService.getListingsByOwner(currentUser));
+    }
+
+    @GetMapping("/analytics")
+    public ResponseEntity<List<CityAnalyticsResponse>> getAnalytics() {
+        return ResponseEntity.ok(listingService.getCityAnalytics());
     }
 
     @DeleteMapping("/{id}")

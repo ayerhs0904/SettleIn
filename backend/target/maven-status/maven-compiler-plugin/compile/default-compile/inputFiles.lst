@@ -16,6 +16,7 @@ C:\anti projects\SettleIn\backend\src\main\java\com\settlein\backend\dto\AiSearc
 C:\anti projects\SettleIn\backend\src\main\java\com\settlein\backend\dto\AiSearchResponse.java
 C:\anti projects\SettleIn\backend\src\main\java\com\settlein\backend\dto\AuthRequest.java
 C:\anti projects\SettleIn\backend\src\main\java\com\settlein\backend\dto\AuthResponse.java
+C:\anti projects\SettleIn\backend\src\main\java\com\settlein\backend\dto\CityAnalyticsResponse.java
 C:\anti projects\SettleIn\backend\src\main\java\com\settlein\backend\dto\CityChatRequest.java
 C:\anti projects\SettleIn\backend\src\main\java\com\settlein\backend\dto\CityChatResponse.java
 C:\anti projects\SettleIn\backend\src\main\java\com\settlein\backend\dto\FlatmateInteractionRequest.java

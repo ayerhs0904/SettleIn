@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useBookmarks } from '../context/BookmarkContext';
 
 const ListingCard = ({ listing }) => {
     const navigate = useNavigate();
     const [showTooltip, setShowTooltip] = useState(false);
+    const { isListingBookmarked, toggleBookmarkListing } = useBookmarks();
+    const isBookmarked = isListingBookmarked(listing.id);
 
     const mainImage = listing.images && listing.images.length > 0
         ? listing.images[0]
@@ -111,6 +114,23 @@ const ListingCard = ({ listing }) => {
                         )}
                     </div>
                 </div>
+
+                {/* Bookmark Button */}
+                <button
+                    type="button"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        toggleBookmarkListing(listing);
+                    }}
+                    title={isBookmarked ? "Remove from bookmarks" : "Save listing"}
+                    className={`absolute top-3 right-3 z-20 w-8 h-8 rounded-full backdrop-blur-md flex items-center justify-center transition-all duration-200 shadow-md ${
+                        isBookmarked
+                            ? 'bg-pink-600 text-white scale-110 shadow-pink-900/50'
+                            : 'bg-gray-900/80 text-gray-300 hover:text-pink-400 hover:scale-110 border border-gray-700/60'
+                    }`}
+                >
+                    {isBookmarked ? '❤️' : '🤍'}
+                </button>
 
                 <div className="absolute bottom-3 right-3 bg-gray-900/90 backdrop-blur-md px-3 py-1 rounded-xl text-sm font-extrabold text-blue-400 border border-gray-700 shadow-md">
                     {formattedRent} <span className="text-xs font-normal text-gray-400">/mo</span>
