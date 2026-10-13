@@ -4,10 +4,14 @@ import CreateTiffinModal from '../components/CreateTiffinModal';
 import SubscribeTiffinModal from '../components/SubscribeTiffinModal';
 import { useAuth } from '../context/AuthContext';
 import { useBookmarks } from '../context/BookmarkContext';
+import { useToast } from '../context/ToastContext';
+import { TiffinCardSkeleton } from '../components/Skeleton';
+import EmptyState from '../components/EmptyState';
 import api from '../services/api';
 
 const TiffinServices = () => {
     const { user } = useAuth();
+    const toast = useToast();
     const [providers, setProviders] = useState([]);
     const [recommendations, setRecommendations] = useState([]);
     const [activeTab, setActiveTab] = useState('recommended'); // 'recommended' or 'all'
@@ -87,9 +91,10 @@ const TiffinServices = () => {
             setReviewComment('');
             setReviewRating(5);
             fetchData(); // refresh list
+            toast.success("Thank you! Your verified review has been posted.", "Review Published");
         } catch (err) {
             console.error("Failed to post review", err);
-            alert("Failed to submit review.");
+            toast.error(err.response?.data?.message || "Failed to submit review.", "Review Error");
         } finally {
             setSubmittingReview(false);
         }
@@ -210,23 +215,43 @@ const TiffinServices = () => {
 
                 {/* Content Grid */}
                 {loading ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 animate-fadeIn">
                         {[1, 2, 3, 4, 5, 6].map((n) => (
-                            <div key={n} className="bg-gray-800 rounded-3xl h-64 animate-pulse border border-gray-700"></div>
+                            <TiffinCardSkeleton key={n} />
                         ))}
                     </div>
                 ) : error ? (
-                    <div className="bg-red-950/40 border border-red-800/40 rounded-2xl p-6 text-center text-red-400">
-                        {error}
+                    <div className="bg-red-950/40 border border-red-800/40 rounded-3xl p-8 text-center text-red-300 shadow-xl space-y-3">
+                        <div className="text-3xl">⚠️</div>
+                        <h3 className="text-lg font-bold text-white">Failed to Load Tiffin Services</h3>
+                        <p className="text-xs text-red-300 max-w-md mx-auto">{error}</p>
+                        <button
+                            onClick={fetchData}
+                            className="bg-red-600 hover:bg-red-500 text-white font-bold text-xs px-5 py-2.5 rounded-xl transition shadow"
+                        >
+                            Retry
+                        </button>
                     </div>
                 ) : displayList.length === 0 ? (
-                    <div className="bg-gray-800/60 border border-gray-700/60 rounded-3xl p-12 text-center text-gray-300 space-y-4 max-w-lg mx-auto shadow-2xl">
-                        <div className="text-5xl">🍱</div>
-                        <h3 className="text-2xl font-bold text-white">No Tiffin Providers Found</h3>
-                        <p className="text-gray-400 text-sm">
-                            Try adjusting your filters or add a new tiffin provider to SettleIn!
-                        </p>
-                    </div>
+                    <EmptyState
+                        icon="🍱"
+                        title="No Tiffin Providers Found"
+                        description={
+                            filterArea || filterCity || filterMaxPrice
+                                ? "No local home kitchens match your current price or location filters. Try loosening your filters to discover more daily messes."
+                                : "No meal plan providers are currently listed in this category."
+                        }
+                        actionText="Clear Filters"
+                        onActionClick={() => {
+                            setFilterArea('');
+                            setFilterCity('');
+                            setFilterMaxPrice('');
+                            setActiveTab('recommended');
+                            toast.info("Tiffin search filters cleared.", "Filters Cleared");
+                        }}
+                        secondaryText="Add New Tiffin Service"
+                        onSecondaryClick={() => setIsCreateModalOpen(true)}
+                    />
                 ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                         {displayList.map((provider) => {

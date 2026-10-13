@@ -6,6 +6,8 @@ import { useBookmarks } from '../context/BookmarkContext';
 import api from '../services/api';
 import SubscribeTiffinModal from '../components/SubscribeTiffinModal';
 import CreateListingModal from '../components/CreateListingModal';
+import { DashboardSkeleton } from '../components/Skeleton';
+import EmptyState from '../components/EmptyState';
 import {
     BarChart,
     Bar,
@@ -426,8 +428,12 @@ const Dashboard = () => {
                     </button>
                 </div>
 
-                {/* TAB 1: OVERVIEW & RECHARTS VISUALIZATIONS */}
-                {activeTab === 'overview' && (
+                {loading ? (
+                    <DashboardSkeleton />
+                ) : (
+                    <>
+                        {/* TAB 1: OVERVIEW & RECHARTS VISUALIZATIONS */}
+                        {activeTab === 'overview' && (
                     <div className="space-y-8 animate-fadeIn">
                         {/* Section Header */}
                         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
@@ -685,21 +691,13 @@ const Dashboard = () => {
                         {bookmarkSubTab === 'listings' && (
                             <div>
                                 {bookmarkedListings.length === 0 ? (
-                                    <div className="bg-gray-800/60 border border-gray-700/60 rounded-3xl p-12 text-center space-y-4">
-                                        <div className="w-16 h-16 rounded-full bg-purple-500/10 text-purple-400 flex items-center justify-center mx-auto text-3xl">
-                                            🏷️
-                                        </div>
-                                        <h3 className="text-lg font-bold text-white">No saved listings yet</h3>
-                                        <p className="text-sm text-gray-400 max-w-md mx-auto">
-                                            As you explore verified properties, tap the heart bookmark icon to keep them saved here for quick comparison.
-                                        </p>
-                                        <Link
-                                            to="/"
-                                            className="inline-block bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold px-6 py-2.5 rounded-xl shadow-lg transition"
-                                        >
-                                            Explore Verified Listings
-                                        </Link>
-                                    </div>
+                                    <EmptyState
+                                        icon="🏷️"
+                                        title="No Saved Listings Yet"
+                                        description="As you explore verified properties, tap the heart bookmark icon to keep them saved here for quick comparison."
+                                        actionText="Explore Verified Listings"
+                                        actionLink="/"
+                                    />
                                 ) : (
                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                         {bookmarkedListings.map((listing) => (
@@ -788,21 +786,13 @@ const Dashboard = () => {
                         {bookmarkSubTab === 'providers' && (
                             <div>
                                 {bookmarkedProviders.length === 0 ? (
-                                    <div className="bg-gray-800/60 border border-gray-700/60 rounded-3xl p-12 text-center space-y-4">
-                                        <div className="w-16 h-16 rounded-full bg-amber-500/10 text-amber-400 flex items-center justify-center mx-auto text-3xl">
-                                            🍱
-                                        </div>
-                                        <h3 className="text-lg font-bold text-white">No saved tiffin providers</h3>
-                                        <p className="text-sm text-gray-400 max-w-md mx-auto">
-                                            Browse homestyle kitchens in your area and bookmark your favorites for easy meal plan subscriptions.
-                                        </p>
-                                        <Link
-                                            to="/tiffin-services"
-                                            className="inline-block bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white font-bold px-6 py-2.5 rounded-xl shadow-lg transition"
-                                        >
-                                            Explore Tiffin Services
-                                        </Link>
-                                    </div>
+                                    <EmptyState
+                                        icon="🍱"
+                                        title="No Saved Tiffin Providers"
+                                        description="Browse homestyle kitchens in your area and bookmark your favorites for easy meal plan subscriptions."
+                                        actionText="Explore Tiffin Services"
+                                        actionLink="/tiffin-services"
+                                    />
                                 ) : (
                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                         {bookmarkedProviders.map((provider) => (
@@ -889,21 +879,13 @@ const Dashboard = () => {
                         </div>
 
                         {subscriptions.length === 0 ? (
-                            <div className="bg-gray-800/60 border border-gray-700/60 rounded-3xl p-12 text-center space-y-4">
-                                <div className="w-16 h-16 rounded-full bg-amber-500/10 text-amber-400 flex items-center justify-center mx-auto text-3xl">
-                                    🍲
-                                </div>
-                                <h3 className="text-lg font-bold text-white">No active subscriptions</h3>
-                                <p className="text-sm text-gray-400 max-w-md mx-auto">
-                                    Subscribe to high-rated home cooks and mess services for daily wholesome meals delivered right to your door.
-                                </p>
-                                <Link
-                                    to="/tiffin-services"
-                                    className="inline-block bg-gradient-to-r from-amber-600 to-orange-600 text-white font-bold px-6 py-2.5 rounded-xl shadow-lg transition"
-                                >
-                                    Browse Meal Providers
-                                </Link>
-                            </div>
+                            <EmptyState
+                                icon="🍲"
+                                title="No Active Meal Subscriptions"
+                                description="Subscribe to high-rated home cooks and mess services for daily wholesome meals delivered right to your door."
+                                actionText="Browse Meal Providers"
+                                actionLink="/tiffin-services"
+                            />
                         ) : (
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 {subscriptions.map((sub) => {
@@ -1010,77 +992,89 @@ const Dashboard = () => {
                             </Link>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {flatmateMatches.map((match) => (
-                                <div
-                                    key={match.id}
-                                    className="bg-gray-800 border border-gray-700/80 rounded-3xl p-5 shadow-xl hover:border-purple-500/50 transition flex flex-col justify-between space-y-4"
-                                >
-                                    {/* Top Profile Header */}
-                                    <div className="flex items-start justify-between">
-                                        <div className="flex items-center space-x-3">
-                                            <img
-                                                src={match.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80'}
-                                                alt={match.name}
-                                                className="w-14 h-14 rounded-2xl object-cover border-2 border-purple-500/40 shadow-md"
-                                            />
-                                            <div>
-                                                <h3 className="font-extrabold text-white text-base">{match.name}</h3>
-                                                <p className="text-xs text-purple-300 font-medium">{match.occupation}</p>
-                                                <p className="text-[11px] text-gray-400 mt-0.5">📍 {match.preferredLocation}</p>
+                        {flatmateMatches.length === 0 ? (
+                            <EmptyState
+                                icon="👥"
+                                title="No Flatmate Leads Found"
+                                description="Adjust your lifestyle preferences or explore roommate candidates to discover compatible flatmates."
+                                actionText="Update Preferences"
+                                actionLink="/preferences"
+                                secondaryText="Swipe Flatmates"
+                                secondaryLink="/find-flatmates"
+                            />
+                        ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {flatmateMatches.map((match) => (
+                                    <div
+                                        key={match.id}
+                                        className="bg-gray-800 border border-gray-700/80 rounded-3xl p-5 shadow-xl hover:border-purple-500/50 transition flex flex-col justify-between space-y-4"
+                                    >
+                                        {/* Top Profile Header */}
+                                        <div className="flex items-start justify-between">
+                                            <div className="flex items-center space-x-3">
+                                                <img
+                                                    src={match.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80'}
+                                                    alt={match.name}
+                                                    className="w-14 h-14 rounded-2xl object-cover border-2 border-purple-500/40 shadow-md"
+                                                />
+                                                <div>
+                                                    <h3 className="font-extrabold text-white text-base">{match.name}</h3>
+                                                    <p className="text-xs text-purple-300 font-medium">{match.occupation}</p>
+                                                    <p className="text-[11px] text-gray-400 mt-0.5">📍 {match.preferredLocation}</p>
+                                                </div>
+                                            </div>
+
+                                            <div className="bg-gradient-to-br from-pink-500 to-purple-600 text-white text-xs font-black px-2.5 py-1 rounded-xl shadow-lg">
+                                                {match.matchScore || 90}% Match
                                             </div>
                                         </div>
 
-                                        <div className="bg-gradient-to-br from-pink-500 to-purple-600 text-white text-xs font-black px-2.5 py-1 rounded-xl shadow-lg">
-                                            {match.matchScore || 90}% Match
+                                        {/* Bio */}
+                                        {match.bio && (
+                                            <p className="text-xs text-gray-300 italic bg-gray-900/40 p-3 rounded-xl border border-gray-700/30 line-clamp-2">
+                                                "{match.bio}"
+                                            </p>
+                                        )}
+
+                                        {/* Lifestyle & Budget Pills */}
+                                        <div className="grid grid-cols-2 gap-2 text-[11px]">
+                                            <div className="bg-gray-900/60 p-2 rounded-xl border border-gray-700/40">
+                                                <span className="text-gray-400 block text-[10px]">Max Budget</span>
+                                                <span className="font-bold text-amber-400">{formatINR(match.budgetMax)}/mo</span>
+                                            </div>
+                                            <div className="bg-gray-900/60 p-2 rounded-xl border border-gray-700/40">
+                                                <span className="text-gray-400 block text-[10px]">Sleep Cycle</span>
+                                                <span className="font-bold text-gray-200">{match.sleepHabit || 'Flexible'}</span>
+                                            </div>
+                                            <div className="bg-gray-900/60 p-2 rounded-xl border border-gray-700/40">
+                                                <span className="text-gray-400 block text-[10px]">Cleanliness</span>
+                                                <span className="font-bold text-gray-200">{match.cleanliness || 'Neat'}</span>
+                                            </div>
+                                            <div className="bg-gray-900/60 p-2 rounded-xl border border-gray-700/40">
+                                                <span className="text-gray-400 block text-[10px]">Work Style</span>
+                                                <span className="font-bold text-gray-200">{match.workFromHome || 'Hybrid'}</span>
+                                            </div>
+                                        </div>
+
+                                        {/* Action Buttons */}
+                                        <div className="pt-2 border-t border-gray-700/60 flex items-center justify-between">
+                                            <Link
+                                                to="/my-matches"
+                                                className="text-xs text-purple-400 hover:text-purple-300 font-semibold"
+                                            >
+                                                View Match Profile
+                                            </Link>
+                                            <button
+                                                onClick={() => navigate('/my-matches')}
+                                                className="bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold px-3.5 py-1.5 rounded-xl shadow transition"
+                                            >
+                                                Send Interest 💌
+                                            </button>
                                         </div>
                                     </div>
-
-                                    {/* Bio */}
-                                    {match.bio && (
-                                        <p className="text-xs text-gray-300 italic bg-gray-900/40 p-3 rounded-xl border border-gray-700/30 line-clamp-2">
-                                            "{match.bio}"
-                                        </p>
-                                    )}
-
-                                    {/* Lifestyle & Budget Pills */}
-                                    <div className="grid grid-cols-2 gap-2 text-[11px]">
-                                        <div className="bg-gray-900/60 p-2 rounded-xl border border-gray-700/40">
-                                            <span className="text-gray-400 block text-[10px]">Max Budget</span>
-                                            <span className="font-bold text-amber-400">{formatINR(match.budgetMax)}/mo</span>
-                                        </div>
-                                        <div className="bg-gray-900/60 p-2 rounded-xl border border-gray-700/40">
-                                            <span className="text-gray-400 block text-[10px]">Sleep Cycle</span>
-                                            <span className="font-bold text-gray-200">{match.sleepHabit || 'Flexible'}</span>
-                                        </div>
-                                        <div className="bg-gray-900/60 p-2 rounded-xl border border-gray-700/40">
-                                            <span className="text-gray-400 block text-[10px]">Cleanliness</span>
-                                            <span className="font-bold text-gray-200">{match.cleanliness || 'Neat'}</span>
-                                        </div>
-                                        <div className="bg-gray-900/60 p-2 rounded-xl border border-gray-700/40">
-                                            <span className="text-gray-400 block text-[10px]">Work Style</span>
-                                            <span className="font-bold text-gray-200">{match.workFromHome || 'Hybrid'}</span>
-                                        </div>
-                                    </div>
-
-                                    {/* Action Buttons */}
-                                    <div className="pt-2 border-t border-gray-700/60 flex items-center justify-between">
-                                        <Link
-                                            to="/my-matches"
-                                            className="text-xs text-purple-400 hover:text-purple-300 font-semibold"
-                                        >
-                                            View Match Profile
-                                        </Link>
-                                        <button
-                                            onClick={() => navigate('/my-matches')}
-                                            className="bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold px-3.5 py-1.5 rounded-xl shadow transition"
-                                        >
-                                            Send Interest 💌
-                                        </button>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 )}
 
@@ -1184,63 +1178,75 @@ const Dashboard = () => {
                         )}
 
                         {/* Listings Cards */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {displayedOwnerListings.map((listing) => (
-                                <div
-                                    key={listing.id}
-                                    className="bg-gray-800 rounded-2xl overflow-hidden border border-gray-700 shadow-xl hover:border-blue-500/50 transition flex flex-col justify-between"
-                                >
-                                    <div className="relative h-44 bg-gray-900 overflow-hidden">
-                                        <img
-                                            src={listing.images?.[0] || 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=800&q=80'}
-                                            alt={listing.title}
-                                            className="w-full h-full object-cover"
-                                        />
-                                        <div className="absolute top-3 left-3 flex items-center space-x-2">
-                                            <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-indigo-600 text-white shadow">
-                                                {listing.listingType}
-                                            </span>
-                                            <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500 text-white shadow">
-                                                🛡️ {listing.trustScore || 90}
-                                            </span>
-                                        </div>
-
-                                        {/* View Count Badge on Top Right */}
-                                        <div className="absolute top-3 right-3 bg-gray-900/90 backdrop-blur-md px-3 py-1 rounded-full text-xs font-extrabold text-cyan-400 border border-cyan-500/40 shadow-lg flex items-center space-x-1.5">
-                                            <span>👁️</span>
-                                            <span>{listing.viewCount || 0} Views</span>
-                                        </div>
-
-                                        <div className="absolute bottom-3 right-3 bg-gray-900/90 backdrop-blur-md px-3 py-1 rounded-xl text-sm font-extrabold text-blue-400 border border-gray-700">
-                                            {formatINR(listing.rent)} <span className="text-xs font-normal text-gray-400">/mo</span>
-                                        </div>
-                                    </div>
-
-                                    <div className="p-5 flex-1 flex flex-col justify-between space-y-3">
-                                        <div>
-                                            <h3 className="text-base font-bold text-white line-clamp-1">{listing.title}</h3>
-                                            <p className="text-xs text-gray-400 mt-1 flex items-center">
-                                                <span className="mr-1 text-red-400">📍</span>
-                                                {listing.location}, {listing.city}
-                                            </p>
-                                        </div>
-
-                                        <div className="pt-3 border-t border-gray-700/60 flex items-center justify-between">
-                                            <div className="text-[11px] text-gray-400">
-                                                <strong className="text-cyan-400">{listing.viewCount || 0}</strong> views recorded
+                        {displayedOwnerListings.length === 0 ? (
+                            <EmptyState
+                                icon="🏠"
+                                title="No Properties Posted Yet"
+                                description="List your room, apartment, or PG with AI trust scoring to receive direct tenant inquiries."
+                                actionText="Post Property"
+                                onActionClick={() => setIsCreateListingModalOpen(true)}
+                            />
+                        ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {displayedOwnerListings.map((listing) => (
+                                    <div
+                                        key={listing.id}
+                                        className="bg-gray-800 rounded-2xl overflow-hidden border border-gray-700 shadow-xl hover:border-blue-500/50 transition flex flex-col justify-between"
+                                    >
+                                        <div className="relative h-44 bg-gray-900 overflow-hidden">
+                                            <img
+                                                src={listing.images?.[0] || 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=800&q=80'}
+                                                alt={listing.title}
+                                                className="w-full h-full object-cover"
+                                            />
+                                            <div className="absolute top-3 left-3 flex items-center space-x-2">
+                                                <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-indigo-600 text-white shadow">
+                                                    {listing.listingType}
+                                                </span>
+                                                <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500 text-white shadow">
+                                                    🛡️ {listing.trustScore || 90}
+                                                </span>
                                             </div>
-                                            <Link
-                                                to={`/listings/${listing.id}`}
-                                                className="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-3.5 py-1.5 rounded-xl shadow transition"
-                                            >
-                                                View Listing →
-                                            </Link>
+
+                                            {/* View Count Badge on Top Right */}
+                                            <div className="absolute top-3 right-3 bg-gray-900/90 backdrop-blur-md px-3 py-1 rounded-full text-xs font-extrabold text-cyan-400 border border-cyan-500/40 shadow-lg flex items-center space-x-1.5">
+                                                <span>👁️</span>
+                                                <span>{listing.viewCount || 0} Views</span>
+                                            </div>
+
+                                            <div className="absolute bottom-3 right-3 bg-gray-900/90 backdrop-blur-md px-3 py-1 rounded-xl text-sm font-extrabold text-blue-400 border border-gray-700">
+                                                {formatINR(listing.rent)} <span className="text-xs font-normal text-gray-400">/mo</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="p-5 flex-1 flex flex-col justify-between space-y-3">
+                                            <div>
+                                                <h3 className="text-base font-bold text-white line-clamp-1">{listing.title}</h3>
+                                                <p className="text-xs text-gray-400 mt-1 flex items-center">
+                                                    <span className="mr-1 text-red-400">📍</span>
+                                                    {listing.location}, {listing.city}
+                                                </p>
+                                            </div>
+
+                                            <div className="pt-3 border-t border-gray-700/60 flex items-center justify-between">
+                                                <div className="text-[11px] text-gray-400">
+                                                    <strong className="text-cyan-400">{listing.viewCount || 0}</strong> views recorded
+                                                </div>
+                                                <Link
+                                                    to={`/listings/${listing.id}`}
+                                                    className="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-3.5 py-1.5 rounded-xl shadow transition"
+                                                >
+                                                    View Listing →
+                                                </Link>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            ))}
-                        </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
+                )}
+                    </>
                 )}
             </main>
 

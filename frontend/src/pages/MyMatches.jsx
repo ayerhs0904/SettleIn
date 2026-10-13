@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
+import { RoommateCardSkeleton } from '../components/Skeleton';
+import EmptyState from '../components/EmptyState';
+import { useToast } from '../context/ToastContext';
 import api from '../services/api';
 
 const MyMatches = () => {
+    const toast = useToast();
     const [interestsGroup, setInterestsGroup] = useState({
         mutualMatches: [],
         sentInterests: [],
@@ -38,9 +42,15 @@ const MyMatches = () => {
                 targetUserId: targetUserId,
                 action: action
             });
+            if (action === 'LIKE') {
+                toast.success("Interest accepted! You can now view their contact details.", "Mutual Match Created 🎉");
+            } else {
+                toast.info("Request dismissed.", "Request Updated");
+            }
             fetchInterests();
         } catch (err) {
             console.error("Failed to respond to interest", err);
+            toast.error("Failed to record response. Please try again.", "Error");
         } finally {
             setActionLoadingId(null);
         }
@@ -86,29 +96,33 @@ const MyMatches = () => {
                 </div>
 
                 {loading ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fadeIn">
                         {[1, 2, 3, 4].map((n) => (
-                            <div key={n} className="bg-gray-800 rounded-3xl h-64 animate-pulse border border-gray-700"></div>
+                            <RoommateCardSkeleton key={n} />
                         ))}
                     </div>
                 ) : error ? (
-                    <div className="bg-red-950/40 border border-red-800/40 rounded-2xl p-6 text-center text-red-400">
-                        {error}
+                    <div className="bg-red-950/40 border border-red-800/40 rounded-3xl p-8 text-center text-red-300 shadow-xl space-y-3">
+                        <div className="text-3xl">⚠️</div>
+                        <h3 className="text-lg font-bold text-white">Failed to Load Matches</h3>
+                        <p className="text-xs text-red-300">{error}</p>
+                        <button
+                            onClick={fetchInterests}
+                            className="bg-red-600 hover:bg-red-500 text-white font-bold text-xs px-5 py-2.5 rounded-xl transition"
+                        >
+                            Retry
+                        </button>
                     </div>
                 ) : totalInterestsCount === 0 ? (
-                    <div className="bg-gray-800/60 border border-gray-700/60 rounded-3xl p-12 text-center text-gray-300 space-y-4 max-w-lg mx-auto shadow-2xl">
-                        <div className="text-5xl">💌</div>
-                        <h3 className="text-2xl font-bold text-white">No Interests Yet</h3>
-                        <p className="text-gray-400 text-sm leading-relaxed">
-                            You haven't swiped on any roommate candidate profiles yet. Start browsing profiles to find compatible flatmates!
-                        </p>
-                        <Link
-                            to="/find-flatmates"
-                            className="inline-block bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-bold px-7 py-3 rounded-xl shadow-lg transition"
-                        >
-                            Discover Flatmates Now 🎴
-                        </Link>
-                    </div>
+                    <EmptyState
+                        icon="💌"
+                        title="No Matches or Interests Yet"
+                        description="You haven't swiped on any roommate candidate profiles yet. Browse candidates to discover compatible flatmates based on lifestyle embeddings!"
+                        actionText="Discover Flatmates Now 🎴"
+                        actionLink="/find-flatmates"
+                        secondaryText="Update Preferences ⚙️"
+                        secondaryLink="/preferences"
+                    />
                 ) : (
                     <div className="space-y-12">
                         {/* 1. MUTUAL MATCHES SECTION */}

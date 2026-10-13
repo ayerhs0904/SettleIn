@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
+import { useToast } from '../context/ToastContext';
+import { Skeleton } from '../components/Skeleton';
 import api from '../services/api';
 
 const PreferencesPage = () => {
@@ -16,6 +18,7 @@ const PreferencesPage = () => {
         aboutMe: 'Software engineer looking for a peaceful, clean place with like-minded roommates.'
     });
 
+    const toast = useToast();
     const [loading, setLoading] = useState(false);
     const [fetching, setFetching] = useState(true);
     const [message, setMessage] = useState('');
@@ -71,17 +74,19 @@ const PreferencesPage = () => {
             const response = await api.post('/preferences', payload);
             setLoading(false);
             setMessage('Preferences saved successfully!');
+            toast.success("Preferences saved & vector embedding generated!", "Profile Updated ⚡");
             if (response.data?.hasEmbedding) {
                 setEmbeddingInfo(`Generated & saved ${response.data.embeddingDimension}-dimensional text vector embedding to PostgreSQL (pgvector).`);
             }
         } catch (err) {
             setLoading(false);
             setMessage('Failed to save preferences. Please try again.');
+            toast.error("Failed to save preferences. Please try again.", "Error");
         }
     };
 
     return (
-        <div className="min-h-screen bg-gray-900 text-white flex flex-col font-sans">
+        <div className="min-h-screen bg-gray-950 text-white flex flex-col font-sans selection:bg-purple-600 selection:text-white">
             <Navbar />
 
             <main className="max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 flex-1">
@@ -95,8 +100,17 @@ const PreferencesPage = () => {
                 </div>
 
                 {fetching ? (
-                    <div className="bg-gray-800/60 p-8 rounded-2xl border border-gray-700 animate-pulse text-center">
-                        Loading preferences...
+                    <div className="bg-gray-800/80 p-8 rounded-3xl border border-gray-700/70 shadow-2xl space-y-6 animate-fadeIn">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                            {[1, 2, 3, 4, 5, 6].map((i) => (
+                                <div key={i} className="space-y-2">
+                                    <Skeleton className="h-4 w-32 rounded-md" />
+                                    <Skeleton className="h-11 w-full rounded-xl" />
+                                </div>
+                            ))}
+                        </div>
+                        <Skeleton className="h-24 w-full rounded-2xl" />
+                        <Skeleton className="h-12 w-44 rounded-xl" />
                     </div>
                 ) : (
                     <form onSubmit={handleSubmit} className="bg-gray-800/80 p-6 sm:p-8 rounded-3xl border border-gray-700/70 shadow-2xl space-y-6">

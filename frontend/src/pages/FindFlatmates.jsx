@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
+import { RoommateCardSkeleton } from '../components/Skeleton';
+import EmptyState from '../components/EmptyState';
+import { useToast } from '../context/ToastContext';
 import api from '../services/api';
 
 const FindFlatmates = () => {
     const navigate = useNavigate();
+    const toast = useToast();
     const [candidates, setCandidates] = useState([]);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [loading, setLoading] = useState(true);
@@ -49,11 +53,17 @@ const FindFlatmates = () => {
 
             if (response.data?.mutualMatch) {
                 setMutualMatchModal(candidate);
+                toast.success(`You and ${candidate.matchUserName} matched mutually! 🎉`, 'Mutual Match!');
+            } else if (action === 'LIKE') {
+                toast.success(`Interest sent to ${candidate.matchUserName}! 💌`, 'Interest Recorded');
+            } else {
+                toast.info(`Passed on profile. Showing next candidate.`, 'Skipped');
             }
 
             setCurrentIndex(prev => prev + 1);
         } catch (err) {
             console.error("Failed to record interaction", err);
+            toast.error("Failed to record response. Please try again.", "Error");
         } finally {
             setActionLoading(false);
         }
@@ -110,52 +120,41 @@ const FindFlatmates = () => {
 
                 {/* Main Card Swiper / Match Discovery View */}
                 {loading ? (
-                    <div className="flex-1 flex items-center justify-center min-h-[450px]">
-                        <div className="text-center space-y-4">
-                            <div className="w-16 h-16 border-4 border-pink-500/30 border-t-pink-500 rounded-full animate-spin mx-auto"></div>
-                            <p className="text-gray-400 text-sm animate-pulse">Finding compatible flatmate recommendations...</p>
-                        </div>
+                    <div className="flex-1 flex items-center justify-center min-h-[450px] max-w-xl mx-auto w-full animate-fadeIn">
+                        <RoommateCardSkeleton />
                     </div>
                 ) : error === "profile_missing" ? (
-                    <div className="bg-gray-800/80 border border-purple-500/40 rounded-3xl p-10 text-center space-y-4 max-w-xl mx-auto shadow-2xl my-auto">
-                        <div className="text-5xl">🧬</div>
-                        <h3 className="text-2xl font-bold text-white">Setup Your Preference Profile</h3>
-                        <p className="text-gray-300 text-sm leading-relaxed">
-                            To find your top compatible flatmates, please complete your lifestyle preference profile first. Our AI will generate vector embeddings to calculate compatibility.
-                        </p>
-                        <Link
-                            to="/preferences"
-                            className="inline-block bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-bold px-8 py-3 rounded-xl shadow-lg transition"
-                        >
-                            Set Up Preferences Now ➔
-                        </Link>
-                    </div>
+                    <EmptyState
+                        icon="🧬"
+                        title="Setup Your Preference Profile"
+                        description="To discover your top compatible flatmates, please complete your lifestyle preference profile first. Our AI will compute vector embeddings on sleep cycles, cleanliness, and budgets."
+                        actionText="Set Up Preferences Now ➔"
+                        actionLink="/preferences"
+                        secondaryText="Browse Properties First"
+                        secondaryLink="/"
+                    />
                 ) : error ? (
-                    <div className="bg-red-950/40 border border-red-800/40 rounded-2xl p-6 text-center text-red-400 my-auto">
-                        {error}
+                    <div className="bg-red-950/40 border border-red-800/40 rounded-3xl p-8 text-center text-red-300 my-auto max-w-md mx-auto space-y-3">
+                        <div className="text-3xl">⚠️</div>
+                        <h3 className="text-lg font-bold text-white">Matchmaker Unavailable</h3>
+                        <p className="text-xs text-red-300">{error}</p>
+                        <button
+                            onClick={fetchCandidates}
+                            className="bg-red-600 hover:bg-red-500 text-white font-bold text-xs px-5 py-2.5 rounded-xl transition"
+                        >
+                            Retry Recommendations
+                        </button>
                     </div>
                 ) : !currentCandidate ? (
-                    <div className="bg-gray-800/60 border border-gray-700/60 rounded-3xl p-12 text-center text-gray-300 space-y-5 my-auto max-w-lg mx-auto shadow-2xl">
-                        <div className="text-6xl">🎉</div>
-                        <h3 className="text-2xl font-bold text-white">All Caught Up!</h3>
-                        <p className="text-gray-400 text-sm leading-relaxed">
-                            You've swiped through all available roommate recommendations for now. Check back later as new users join, or view your existing matches & interests.
-                        </p>
-                        <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
-                            <button
-                                onClick={fetchCandidates}
-                                className="bg-gray-700 hover:bg-gray-600 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition"
-                            >
-                                Refresh Feed 🔄
-                            </button>
-                            <Link
-                                to="/my-matches"
-                                className="bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold px-6 py-2.5 rounded-xl text-sm shadow-md transition"
-                            >
-                                View My Matches 💘
-                            </Link>
-                        </div>
-                    </div>
+                    <EmptyState
+                        icon="🎉"
+                        title="You're All Caught Up!"
+                        description="You've swiped through all available roommate recommendations for now. Check back as new users relocate, or inspect your mutual matches."
+                        actionText="View My Matches 💘"
+                        actionLink="/my-matches"
+                        secondaryText="Refresh Feed 🔄"
+                        onSecondaryClick={fetchCandidates}
+                    />
                 ) : (
                     <div className="flex-1 flex flex-col justify-between max-w-2xl mx-auto w-full space-y-6">
                         {/* Main Profile Card */}

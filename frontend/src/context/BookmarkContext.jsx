@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
+import { useToast } from './ToastContext';
 import api from '../services/api';
 
 const BookmarkContext = createContext(null);
@@ -90,6 +91,7 @@ const DEFAULT_SUBSCRIPTIONS = [
 
 export const BookmarkProvider = ({ children }) => {
     const { user } = useAuth();
+    const toast = useToast();
     const userKey = user?.email ? user.email.replace(/[^a-zA-Z0-9]/g, '_') : 'guest';
 
     // State for bookmarked listings
@@ -154,14 +156,14 @@ export const BookmarkProvider = ({ children }) => {
 
     const toggleBookmarkListing = (listing) => {
         if (!listing || !listing.id) return;
-        setBookmarkedListings(prev => {
-            const exists = prev.some(item => String(item.id) === String(listing.id));
-            if (exists) {
-                return prev.filter(item => String(item.id) !== String(listing.id));
-            } else {
-                return [listing, ...prev];
-            }
-        });
+        const exists = bookmarkedListings.some(item => String(item.id) === String(listing.id));
+        if (exists) {
+            setBookmarkedListings(prev => prev.filter(item => String(item.id) !== String(listing.id)));
+            toast.bookmark(listing.title, false);
+        } else {
+            setBookmarkedListings(prev => [listing, ...prev]);
+            toast.bookmark(listing.title, true);
+        }
     };
 
     const isProviderBookmarked = (id) => {
@@ -170,14 +172,14 @@ export const BookmarkProvider = ({ children }) => {
 
     const toggleBookmarkProvider = (provider) => {
         if (!provider || !provider.id) return;
-        setBookmarkedProviders(prev => {
-            const exists = prev.some(item => String(item.id) === String(provider.id));
-            if (exists) {
-                return prev.filter(item => String(item.id) !== String(provider.id));
-            } else {
-                return [provider, ...prev];
-            }
-        });
+        const exists = bookmarkedProviders.some(item => String(item.id) === String(provider.id));
+        if (exists) {
+            setBookmarkedProviders(prev => prev.filter(item => String(item.id) !== String(provider.id)));
+            toast.bookmark(provider.name, false);
+        } else {
+            setBookmarkedProviders(prev => [provider, ...prev]);
+            toast.bookmark(provider.name, true);
+        }
     };
 
     // Subscriptions management
@@ -190,6 +192,7 @@ export const BookmarkProvider = ({ children }) => {
             ...subscriptionData
         };
         setSubscriptions(prev => [newSub, ...prev]);
+        toast.success(`Subscribed to ${subscriptionData.providerName}!`, 'Meal Plan Activated');
         return newSub;
     };
 
@@ -197,6 +200,11 @@ export const BookmarkProvider = ({ children }) => {
         setSubscriptions(prev => prev.map(sub => {
             if (sub.id === id) {
                 const nextStatus = sub.status === 'ACTIVE' ? 'PAUSED' : 'ACTIVE';
+                if (nextStatus === 'PAUSED') {
+                    toast.info(`Deliveries paused for ${sub.providerName}. Resume whenever you're ready!`, 'Plan Paused');
+                } else {
+                    toast.success(`Deliveries resumed for ${sub.providerName}!`, 'Plan Resumed');
+                }
                 return { ...sub, status: nextStatus };
             }
             return sub;
@@ -204,7 +212,9 @@ export const BookmarkProvider = ({ children }) => {
     };
 
     const cancelSubscription = (id) => {
+        const target = subscriptions.find(s => s.id === id);
         setSubscriptions(prev => prev.filter(sub => sub.id !== id));
+        toast.info(target ? `Cancelled meal plan for ${target.providerName}.` : 'Subscription cancelled.', 'Plan Cancelled');
     };
 
     return (

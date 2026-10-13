@@ -3,12 +3,16 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { useAuth } from '../context/AuthContext';
 import { useBookmarks } from '../context/BookmarkContext';
+import { useToast } from '../context/ToastContext';
+import { ListingDetailSkeleton } from '../components/Skeleton';
+import EmptyState from '../components/EmptyState';
 import api from '../services/api';
 
 const ListingDetail = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const { user } = useAuth();
+    const toast = useToast();
     const { isListingBookmarked, toggleBookmarkListing } = useBookmarks();
 
     const [listing, setListing] = useState(null);
@@ -39,34 +43,37 @@ const ListingDetail = () => {
         setDeleting(true);
         try {
             await api.delete(`/listings/${id}`);
+            toast.info("Listing deleted successfully.", "Property Removed");
             navigate('/');
         } catch (err) {
-            alert(err.response?.data?.message || "Failed to delete listing.");
+            toast.error(err.response?.data?.message || "Failed to delete listing.", "Delete Error");
             setDeleting(false);
         }
     };
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-gray-900 text-white flex flex-col">
+            <div className="min-h-screen bg-gray-950 text-white flex flex-col">
                 <Navbar />
-                <div className="max-w-5xl mx-auto px-4 py-12 flex-1 flex items-center justify-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-                </div>
+                <ListingDetailSkeleton />
             </div>
         );
     }
 
     if (error || !listing) {
         return (
-            <div className="min-h-screen bg-gray-900 text-white flex flex-col">
+            <div className="min-h-screen bg-gray-950 text-white flex flex-col">
                 <Navbar />
-                <div className="max-w-3xl mx-auto px-4 py-16 text-center space-y-4">
-                    <h2 className="text-3xl font-bold text-red-400">Oops!</h2>
-                    <p className="text-gray-300">{error}</p>
-                    <Link to="/" className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-bold transition">
-                        Back to Listings
-                    </Link>
+                <div className="max-w-4xl mx-auto px-4 py-16 flex-1 flex items-center justify-center">
+                    <EmptyState
+                        icon="🏠"
+                        title="Property Not Found"
+                        description={error || "This property may have been unlisted or removed by the owner."}
+                        actionText="Browse Available Properties"
+                        actionLink="/"
+                        secondaryText="Go to Dashboard"
+                        secondaryLink="/dashboard"
+                    />
                 </div>
             </div>
         );
@@ -342,8 +349,13 @@ const ListingDetail = () => {
                             </div>
 
                             <button
-                                onClick={() => alert(`Contacting ${listing.ownerName} for property query.`)}
-                                className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-bold py-3 rounded-xl shadow-lg shadow-blue-500/20 transition"
+                                onClick={() => {
+                                    toast.success(
+                                        `Inquiry sent to ${listing.ownerName}! They will reach out to you via your registered email/phone.`,
+                                        'Inquiry Submitted'
+                                    );
+                                }}
+                                className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-bold py-3 rounded-xl shadow-lg shadow-blue-500/20 transition transform hover:-translate-y-0.5 active:translate-y-0"
                             >
                                 Contact Owner
                             </button>
