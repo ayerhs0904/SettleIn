@@ -1,0 +1,45 @@
+# ==========================================
+# Render Infrastructure Blueprint Specification
+# Docs: https://render.com/docs/blueprint-spec
+# ==========================================
+
+services:
+  # --- SettleIn Spring Boot REST Backend ---
+  - type: web
+    name: settlein-backend
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free
+    region: singapore # Options: oregon, frankfurt, ohio, singapore
+    healthCheckPath: /api/health
+    envVars:
+      - key: PORT
+        value: 8080
+      - key: DB_URL
+        fromDatabase:
+          name: settlein-db
+          property: connectionString
+      # If using Supabase instead of Render Postgres, set DB_URL to your Supabase Pooler URL
+      - key: DB_POOL_SIZE
+        value: 10
+      - key: JPA_DDL_AUTO
+        value: update
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRATION_MS
+        value: 86400000
+      - key: CORS_ALLOWED_ORIGINS
+        value: https://settlein.vercel.app,http://localhost:5173,http://localhost:3000
+      - key: SHOW_SQL
+        value: false
+
+databases:
+  # --- Optional Render PostgreSQL Database with pgvector ---
+  # If you are using Supabase, you can delete this section and point DB_URL to Supabase
+  - name: settlein-db
+    databaseName: settlein
+    user: settlein_user
+    plan: free
+    region: singapore
+    postgresMajorVersion: 16

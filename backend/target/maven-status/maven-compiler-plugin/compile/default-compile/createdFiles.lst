@@ -6,6 +6,7 @@ com\settlein\backend\entity\CityKnowledgeChunk$CityKnowledgeChunkBuilder.class
 com\settlein\backend\repository\CityKnowledgeChunkRepository.class
 com\settlein\backend\dto\AuthResponse$AuthResponseBuilder.class
 com\settlein\backend\dto\AiParsedFilters$AiParsedFiltersBuilder.class
+com\settlein\backend\dto\CityAnalyticsResponse$CityAnalyticsResponseBuilder.class
 com\settlein\backend\config\CityKnowledgeInitializer.class
 com\settlein\backend\dto\FlatmateMatchResponse.class
 com\settlein\backend\entity\Role.class
@@ -21,6 +22,7 @@ com\settlein\backend\entity\TiffinReview.class
 com\settlein\backend\dto\RegisterRequest.class
 com\settlein\backend\dto\AuthResponse.class
 com\settlein\backend\service\CityChatbotService$ScoredChunk.class
+com\settlein\backend\config\DataSourceConfig.class
 com\settlein\backend\repository\UserRepository.class
 com\settlein\backend\controller\AuthController.class
 com\settlein\backend\dto\AiSearchRequest.class
@@ -79,6 +81,7 @@ com\settlein\backend\entity\Listing$ListingBuilder.class
 com\settlein\backend\dto\FlatmateInterestGroupResponse$FlatmateInterestGroupResponseBuilder.class
 com\settlein\backend\dto\FlatmateInteractionResponse.class
 com\settlein\backend\dto\FlatmatePreferenceRequest.class
+com\settlein\backend\dto\CityAnalyticsResponse.class
 com\settlein\backend\dto\ListingRequest$ListingRequestBuilder.class
 com\settlein\backend\config\VectorConverter.class
 com\settlein\backend\dto\TiffinReviewRequest$TiffinReviewRequestBuilder.class

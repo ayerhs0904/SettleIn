@@ -1,6 +1,7 @@
 C:\anti projects\SettleIn\backend\src\main\java\com\settlein\backend\BackendApplication.java
 C:\anti projects\SettleIn\backend\src\main\java\com\settlein\backend\config\CityKnowledgeInitializer.java
 C:\anti projects\SettleIn\backend\src\main\java\com\settlein\backend\config\CustomUserDetailsService.java
+C:\anti projects\SettleIn\backend\src\main\java\com\settlein\backend\config\DataSourceConfig.java
 C:\anti projects\SettleIn\backend\src\main\java\com\settlein\backend\config\JwtAuthenticationFilter.java
 C:\anti projects\SettleIn\backend\src\main\java\com\settlein\backend\config\JwtService.java
 C:\anti projects\SettleIn\backend\src\main\java\com\settlein\backend\config\SecurityConfig.java

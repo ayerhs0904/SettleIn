@@ -85,15 +85,16 @@ public class AiSearchService {
         // Pattern for "under 12k", "below 15000", "under 15,000", "less than 20k"
         Pattern rentPattern = Pattern.compile("(under|below|less than|<|budget|max)?\\s*(₹|rs\\.?|inr)?\\s*(\\d+)(k|000)?");
         Matcher rentMatcher = rentPattern.matcher(lowerQuery);
-        if (rentMatcher.find()) {
+        while (rentMatcher.find()) {
             try {
                 String numStr = rentMatcher.group(3);
                 double val = Double.parseDouble(numStr);
                 if ("k".equalsIgnoreCase(rentMatcher.group(4))) {
                     val *= 1000;
                 }
-                if (val > 500) { // filter out small single digits
+                if (val >= 1000) { // filter out small single/double digits like Sector 62
                     maxRent = val;
+                    break;
                 }
             } catch (Exception ignored) {}
         }
